@@ -72,8 +72,7 @@ int main() {
     const char* filename = "JuliaSet.bmp";
     image.save_bmp(filename);
     std::cout << "Image saved as " << filename << std::endl;
-    image.save_bmp(filename);
-    std::cout << "Image saved as " << filename << std::endl;
+   
 
     return 0;
 }

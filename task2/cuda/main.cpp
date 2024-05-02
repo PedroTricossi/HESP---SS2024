@@ -1,5 +1,6 @@
-#include "julia.cuh"
 #pragma warning(disable: 4146) // Disable warning C4146
+#include "julia.cuh"
+#include <cuda_runtime.h>
 #define cimg_display 0
 #include "CImg.h"
 #include<X11/Xlib.h>
@@ -8,17 +9,25 @@
 using namespace cimg_library;
 
 
+
 int main() {
-    CImg<unsigned char> image(WIDTH, HEIGHT, 1, 3, 255);
+    unsigned char* d_imageData = computeJuliaSetHost();
 
-    unsigned char* d_imageData;
+    if (d_imageData == nullptr) {
+        std::cerr << "Error: Failed to compute Julia set." << std::endl;
+        return 1;
+    }
 
-    computeJuliaSetHost(d_imageData);
+    CImg<unsigned char> image(d_imageData, WIDTH, HEIGHT, 1, 3, false);
 
-    image.save_bmp("JuliaSet.bmp");
-    
-    // std::cout << "Image saved as " << filename << std::endl;
-   
+    // Save the image
+    const char* filename = "JuliaSet.bmp";
+    image.save_bmp(filename);
+
+   std::cout << "Image saved as " << filename << std::endl;
+
+    // Free allocated memory
+    cudaFree(d_imageData);
 
     return 0;
 }

@@ -51,7 +51,7 @@ INC_DIR = include
 EXE = run_test
 
 # Object files:
-OBJS = $(OBJ_DIR)/main.o $(OBJ_DIR)/point.o 
+OBJS = $(OBJ_DIR)/main.o $(OBJ_DIR)/point.o $(OBJ_DIR)/neighbourList.o
 
 ##########################################################
 

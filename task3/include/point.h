@@ -1,6 +1,10 @@
-    #include "vec3d.h"
+#pragma once
+#include "vec3d.h"
 
-typedef struct point{
+typedef struct t_point{
+    /// Unique identifier of the particle.
+    int id;
+
     /// Current position of the particle [m].
     t_vec3 cur_pos; 
 
@@ -9,11 +13,15 @@ typedef struct point{
 
     /// current accelaration of the particle [m/s^2].
     t_vec3 cur_acc;
+
+    /// next particle in the same cell
+    t_point *next;
 } t_point;
 
 // Initialize the particle
 // TODO: Add inicialization by config file
-void init_particle(t_point *particle);
+void init_particle(t_point *particle, int *id);
 
 // Update the particle position, velocity and acceleration using Verlet integration
-void update(t_point *particle, double dt);
+t_point update(t_point *particle, double dt);
+

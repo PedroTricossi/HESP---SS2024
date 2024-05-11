@@ -22,7 +22,7 @@ void init_particle(t_point *particle, int *id){
 
     particle->cur_pos = {x_pos, y_pos, z_pos};
 
-    particle->cur_vel = {50., 80., 0.};
+    particle->cur_vel = {50., 60., 0.};
 
     particle->cur_acc = {1., 0., 0.};
 

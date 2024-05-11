@@ -87,7 +87,6 @@ void add_particle(t_neighbourList *neighbourList, t_point *particle){
 int detect_collision(t_neighbourList *neighbourList, t_point *particle){
     t_neighbourList *current_cell = neighbourList;
     int i = 0;
-    int collision = 0;
 
     float cell_x_index = floor(particle->cur_pos.x / CELL_SIZE);
     float cell_y_index = floor(particle->cur_pos.y / CELL_SIZE);
@@ -106,7 +105,7 @@ int detect_collision(t_neighbourList *neighbourList, t_point *particle){
     t_point *current_particle = current_cell->particle;
     while(current_particle != NULL){
         if(current_particle->id == particle->id)
-            return collision;
+            return 0;
 
         current_particle = current_particle->next;
     }

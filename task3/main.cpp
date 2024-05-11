@@ -20,24 +20,24 @@ int main(int argc, char* argv[]) {
 
         for(t_point& particle : particles){
             particle = update(&particle, DT);
-            collision = detect_collision(neighbourList, &particle);
+            if(detect_collision(neighbourList, &particle))
+                collision = 1;
+        }
 
-            cout << "Particle " << particle.id << " position: " << particle.cur_pos.x << " " << particle.cur_pos.y << " " << particle.cur_pos.z << endl;
-
-            if(collision){
-                cout << "Collision detected" << endl;
-                clean_particle(neighbourList);
-                neighbourList = init_neighbourList(SIMULATION_SPACE);
-                for(t_point& particle : particles){
-                    add_particle(neighbourList, &particle);
-                }
+        if(collision){
+            cout << "Collision detected" << endl;
+            clean_particle(neighbourList);
+            neighbourList = init_neighbourList(SIMULATION_SPACE);
+            for(t_point& particle : particles){
+                add_particle(neighbourList, &particle);
             }
-            t_neighbourList *current_cell = neighbourList;
-            while(current_cell != NULL){
-                if(current_cell->num_particles > 0)
-                    cout << "Cell " << current_cell->id << " has " << current_cell->num_particles << " particles" << endl;
-                current_cell = current_cell->next;
-            }
+        }
+        
+        t_neighbourList *current_cell = neighbourList;
+        while(current_cell != NULL){
+            if(current_cell->num_particles > 0)
+                cout << "Cell " << current_cell->id << " has " << current_cell->num_particles << " particles" << endl;
+            current_cell = current_cell->next;
         }
     }
 

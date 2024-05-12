@@ -2,7 +2,6 @@
 #include <vector>
 #include <fstream>
 #include "Eigen/Dense"
-#include "constants.h"
 
 class Particle3D
 {

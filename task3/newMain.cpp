@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
         // Clear forces for the next step (to remove accumulation of forces from previous time step) 
         std::fill(forces.begin(), forces.end(), Eigen::Vector3f(0.0f, 0.0f, 0.0f));
 
-        // Visualize particle positions (optional)
+        // Visualize particle positions 
     }
 
     return 0;

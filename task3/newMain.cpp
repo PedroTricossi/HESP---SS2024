@@ -1,7 +1,10 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
-#include "Eigen/Dense"
+#include <iostream>
+#include <fstream>
+#include "eigen/Eigen/Dense"
+
 
 class Particle3D
 {
@@ -81,7 +84,42 @@ float Particle3D::forceUpdate(const Particle3D& particle,const float eps, const 
     float xij = r.norm();
 
     float sigma_xij = sigma / xij;
-    return 24 * eps * std::pow((sigma_xij), 6) * 2 * (std::pow(sigma_xij,6) - 1);
+
+    float xij_sigma = xij / sigma;
+
+    return 24 * eps * std::pow((sigma_xij), 6) * 2 * (std::pow(sigma_xij,6) - 1) * (xij / (xij * xij));
+}
+
+void writeVTKFile(int step, int num_particles, std::vector<Particle3D> particles){
+    std::ofstream simulationFile("simulation_" + std::to_string(step) + ".vtk");
+
+    simulationFile << "# vtk DataFile Version 3.0 \n";
+    simulationFile << "Lennard-Jones particle simulation \n";
+    simulationFile << "ASCII \n";
+    simulationFile << "DATASET UNSTRUCTURED_GRID \n";
+    simulationFile << "POINTS " << num_particles << " float \n";
+    
+    for(int i = 0; i < num_particles; i++){
+        Eigen::Vector3f pos = particles[i].getPosition();
+        simulationFile << pos[0] << " " << pos[1] << " " << pos[2] << "\n";
+    } 
+    
+    simulationFile << "CELLS " << "0" << " " << "0" << "\n";
+    simulationFile << "CELL_TYPES " << "0" << "\n";
+    simulationFile << "POINT_DATA " << num_particles << "\n";
+    simulationFile << "SCALARS mass float \n";
+    simulationFile << "LOOKUP_TABLE default \n";
+
+    for(int i = 0; i < num_particles; i++){
+        simulationFile << particles[i].getMass() << "\n";
+    }
+
+    simulationFile << "VECTORS velocity float \n";
+    for(int i = 0; i < num_particles; i++){
+        Eigen::Vector3f vel = particles[i].getVelocity();
+        simulationFile << vel[0] << " " << vel[1] << " " << vel[2] << "\n";
+    }
+
 }
 
 
@@ -100,14 +138,34 @@ int main(int argc, char* argv[])
     int num_particles = std::atoi(argv[3]);
     float eps = std::atof(argv[4]);
     float sigma = std::atof(argv[5]);
-
+    std::string sep = "\n----------------------------------------\n";
     // Initialize particles and forces
     std::vector<Particle3D> particles(num_particles);
     std::vector<Eigen::Vector3f> forces(num_particles);
 
+    for(int i = 0; i < num_particles; i++)
+    {
+        float x, y, z;
+        if(i == 0)
+        {
+            x = y = z = i + 1;
+        }
+        else
+        {
+            x = y = z = i + 3;
+        }
+        
+        particles[i].setMass(1.0f);
+        particles[i].setPosition(Eigen::Vector3f(x, y, z));
+        particles[i].setVelocity(Eigen::Vector3f(0.0f, 0.0f, 0.0f));
+    }
+
+    writeVTKFile(0, num_particles, particles);
+
     // Perform simulation steps
     for (int step = 0; step < time_steps; ++step)
-    {
+    {   
+        
         // Calculate forces between particles
         for (int i = 0; i < num_particles; ++i)
         {
@@ -118,8 +176,8 @@ int main(int argc, char* argv[])
                 float force_ij = particle_i.forceUpdate(particle_j, eps, sigma);
                 Eigen::Vector3f r = particle_j.getPosition() - particle_i.getPosition();
                 Eigen::Vector3f f = force_ij * r.normalized(); // Calculate force vector
-                forces[i] += f;
-                forces[j] -= f; // Newton's third law
+                forces[i] -= f;
+                forces[j] += f; // Newton's third law
             }
         }
 
@@ -131,12 +189,17 @@ int main(int argc, char* argv[])
             // Calculate acceleration using the forces on the particle
             Eigen::Vector3f acceleration = forces[i] / particle.getMass();
 
-            // Update velocity using half-step integration
-            particle.setVelocity(particle.getVelocity() + 0.5f * step_size * acceleration);
-
             // Update position using full-step integration
-            particle.setPosition(particle.getPosition() + step_size * particle.getVelocity());
+            particle.setPosition(particle.getPosition() + (step_size * particle.getVelocity()) + (step_size * step_size * acceleration * 0.5f));
+
+            // Update velocity using half-step integration
+            particle.setVelocity(particle.getVelocity() + (0.5f * step_size * acceleration));
         }
+
+        // Write particle positions to VTK file
+        writeVTKFile(step + 1, num_particles, particles);
+
+
 
         // Clear forces for the next step (to remove accumulation of forces from previous time step) 
         std::fill(forces.begin(), forces.end(), Eigen::Vector3f(0.0f, 0.0f, 0.0f));

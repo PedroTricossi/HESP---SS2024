@@ -1,0 +1,17 @@
+# vtk DataFile Version 3.0 
+Lennard-Jones particle simulation 
+ASCII 
+DATASET UNSTRUCTURED_GRID 
+POINTS 2 float 
+1.74821 1.74821 1.74821
+3.25179 3.25179 3.25179
+CELLS 0 0
+CELL_TYPES 0
+POINT_DATA 2
+SCALARS mass float 
+LOOKUP_TABLE default 
+1
+1
+VECTORS velocity float 
+0.104085 0.104085 0.104085
+-0.104085 -0.104085 -0.104085

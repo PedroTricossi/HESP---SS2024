@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "memory": "cpp",
+        "future": "cpp",
+        "istream": "cpp",
+        "functional": "cpp",
+        "*.inc": "cpp",
+        "random": "cpp",
+        "ratio": "cpp"
+    }
+}

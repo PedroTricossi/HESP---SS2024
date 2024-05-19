@@ -198,9 +198,9 @@ int main(int argc, char* argv[]) {
     cudaMallocManaged(&forces, num_particles * sizeof(float3));
 
     for (int i = 0; i < num_particles; ++i) {
-        float x = (i == 0) ? i + 1 : i + 3;
-        float y = x;
-        float z = x;
+        float x = fmod(i, 10);
+        float y = (i >= 10) ? fmod(floor(i / 10), 10): 0;
+        float z = (i >= 100) ? fmod(floor(i / 100), 10) : 0;
         particles[i] = Particle3D(float3{ x, y, z }, float3{ 0.0f, 0.0f, 0.0f }, 1.0f);
         forces[i] = float3{ 0.0f, 0.0f, 0.0f };
     }

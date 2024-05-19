@@ -153,8 +153,11 @@ __global__ void integrateParticles(Particle3D* particles, float3* forces, int nu
 }
 
 void simulateParticles(Particle3D* particles, float3* forces, int time_steps, int num_particles, float eps, float sigma, float step_size) {
+    int deviceId;
+    cudaGetDevice(&deviceId);
+
     cudaDeviceProp prop;
-    cudaGetDeviceProperties(&prop, 0); // Assuming device 0
+    cudaGetDeviceProperties(&prop, deviceId);
 
     int numberOfThreads = 256; // Declare and initialize numberOfThreads
     int numberOfBlocks = 32 * prop.multiProcessorCount; // Declare and initialize numberOfBlocks

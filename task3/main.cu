@@ -19,6 +19,7 @@ public:
         position.x = 0.0f;
         position.y = 0.0f;
         position.z = 0.0f;
+        
         velocity.x = 0.0f;
         velocity.y = 0.0f;
         velocity.z = 0.0f;
@@ -43,7 +44,7 @@ public:
     __host__ __device__ float calculateLJPotential(const Particle3D& particle, const float eps, const float sigma);
 
     // Function to calculate the force update
-    __host__ __device__ float forceUpdate(const Particle3D& particle, const float eps, const float sigma);
+    __host__ __device__ float forceUpdate(const Particle3D& particle_j, const float eps, const float sigma);
 };
 
 __device__ float Particle3D::calculateLJPotential(const Particle3D& particle, const float eps, const float sigma)
@@ -58,17 +59,20 @@ __device__ float Particle3D::calculateLJPotential(const Particle3D& particle, co
     return (4 * eps * (powf(sigma_xij, 12) - powf(sigma_xij, 6)));
 }
 
-__device__ float Particle3D::forceUpdate(const Particle3D& particle, const float eps, const float sigma)
+__device__ float forceUpdate(const Particle3D& particle_j, const float eps, const float sigma)
 {
     float3 r;
-    r.x = particle.getPosition().x - position.x;
-    r.y = particle.getPosition().y - position.y;
-    r.z = particle.getPosition().z - position.z;
+
+    r.x = particle_j.getPosition().x - position.x;
+    r.y = particle_j.getPosition().y - position.y;
+    r.z = particle_j.getPosition().z - position.z;
 
     float xij = sqrtf(r.x * r.x + r.y * r.y + r.z * r.z);
-    float sigma_xij = sigma / xij;
 
-    float f_scalar = 24 * eps * powf(sigma_xij, 6) * 2 * (powf(sigma_xij, 6) - 1) * (xij / (xij * xij));
+    float sigma_xij = sigma / xij;
+    float sigma_xij_6 = powf(sigma_xij, 6);
+
+    float f_scalar = 24 * eps * sigma_xij_6 * ( 2 * powf(sigma_xij, 6) - 1);
 
     return f_scalar;
 }
@@ -107,22 +111,28 @@ void writeVTKFile(int step, int num_particles, Particle3D* particles) {
 
 __global__ void computeForces(Particle3D* particles, float3* forces, int num_particles, float eps, float sigma) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
+    float3 f;
+    float3 r;
+
     if (i < num_particles) {
         for (int j = 0; j < num_particles; ++j) {
             if (i != j) {
                 float force_ij = particles[i].forceUpdate(particles[j], eps, sigma);
-                float3 r;
+                
                 r.x = particles[j].getPosition().x - particles[i].getPosition().x;
                 r.y = particles[j].getPosition().y - particles[i].getPosition().y;
                 r.z = particles[j].getPosition().z - particles[i].getPosition().z;
+
                 float xij = sqrtf(r.x * r.x + r.y * r.y + r.z * r.z);
-                float3 f;
-                f.x = force_ij * r.x / xij;
-                f.y = force_ij * r.y / xij;
-                f.z = force_ij * r.z / xij;
+                
+                f.x = force_ij * r.x / xij * xij;
+                f.y = force_ij * r.y / xij * xij;
+                f.z = force_ij * r.z / xij * xij;
+
                 atomicAdd(&forces[i].x, -f.x);
                 atomicAdd(&forces[i].y, -f.y);
                 atomicAdd(&forces[i].z, -f.z);
+
                 atomicAdd(&forces[j].x, f.x);
                 atomicAdd(&forces[j].y, f.y);
                 atomicAdd(&forces[j].z, f.z);
@@ -136,18 +146,25 @@ __global__ void integrateParticles(Particle3D* particles, float3* forces, int nu
     if (i < num_particles) {
         Particle3D& particle = particles[i];
         float3 acceleration;
+        float3 half_speed;
         acceleration.x = forces[i].x / particle.getMass();
         acceleration.y = forces[i].y / particle.getMass();
         acceleration.z = forces[i].z / particle.getMass();
+
         particle.setPosition(float3{
             particle.getPosition().x + (step_size * particle.getVelocity().x) + (step_size * step_size * acceleration.x * 0.5f),
             particle.getPosition().y + (step_size * particle.getVelocity().y) + (step_size * step_size * acceleration.y * 0.5f),
             particle.getPosition().z + (step_size * particle.getVelocity().z) + (step_size * step_size * acceleration.z * 0.5f)
             });
+
+        half_speed.x = particle.getVelocity().x + (0.5f * step_size * acceleration.x);
+        half_speed.y = particle.getVelocity().y + (0.5f * step_size * acceleration.y);
+        half_speed.z = particle.getVelocity().z + (0.5f * step_size * acceleration.z);
+
         particle.setVelocity(float3{
-            particle.getVelocity().x + (0.5f * step_size * acceleration.x),
-            particle.getVelocity().y + (0.5f * step_size * acceleration.y),
-            particle.getVelocity().z + (0.5f * step_size * acceleration.z)
+            half_speed.x + (0.5f * step_size * acceleration.x),
+            half_speed.y + (0.5f * step_size * acceleration.y),
+            half_speed.z + (0.5f * step_size * acceleration.z),
             });
     }
 }
@@ -167,7 +184,7 @@ void simulateParticles(Particle3D* particles, float3* forces, int time_steps, in
         cudaMemset(forces, 0, num_particles * sizeof(float3));
 
         // Compute forces using CUDA
-        computeForces << <numberOfBlocks, numberOfThreads >> > (particles, forces, num_particles, eps, sigma);
+        computeForces <<<numberOfBlocks, numberOfThreads >>> (particles, forces, num_particles, eps, sigma);
         cudaDeviceSynchronize();
 
         // Integrate particles using CUDA

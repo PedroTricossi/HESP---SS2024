@@ -14,19 +14,19 @@ private:
 public:
     // Constructors
     Particle3D()
-        : mass(0.0f)
+            : mass(0.0f)
     {
         position.x = 0.0f;
         position.y = 0.0f;
         position.z = 0.0f;
-        
+
         velocity.x = 0.0f;
         velocity.y = 0.0f;
         velocity.z = 0.0f;
     }
 
     Particle3D(float3 pos, float3 vel, float m)
-        : position(pos), velocity(vel), mass(m)
+            : position(pos), velocity(vel), mass(m)
     {
     }
 
@@ -59,7 +59,7 @@ __device__ float Particle3D::calculateLJPotential(const Particle3D& particle, co
     return (4 * eps * (powf(sigma_xij, 12) - powf(sigma_xij, 6)));
 }
 
-__device__ float forceUpdate(const Particle3D& particle_j, const float eps, const float sigma)
+__device__ float Particle3D::forceUpdate(const Particle3D& particle_j, const float eps, const float sigma)
 {
     float3 r;
 

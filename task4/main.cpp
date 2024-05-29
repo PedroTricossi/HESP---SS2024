@@ -1,9 +1,10 @@
 #include <iostream>
+#include "include/particle_simulation.cuh"
 
 
 int main(int argc, char* argv[]) {
-    if (argc != 6) {
-        std::cerr << "Usage: " << argv[0] << " time_steps step_size num_particles eps sigma" << std::endl;
+    if (argc != 7) {
+        std::cerr << "Usage: " << argv[0] << " time_steps step_size num_particles eps sigma box_extension " << std::endl;
         return 1;
     }
 
@@ -12,6 +13,11 @@ int main(int argc, char* argv[]) {
     int num_particles = std::atoi(argv[3]);
     float eps = std::atof(argv[4]);
     float sigma = std::atof(argv[5]);
+    float box_extension = std::atof(argv[6]);
+
+    std::cout << "BOX: " << box_extension << std::endl;
+
+    start_particle_simulation(time_steps, step_size, num_particles, eps, sigma, box_extension);
 
     return 0;
 }

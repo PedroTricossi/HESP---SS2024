@@ -35,24 +35,9 @@ public:
     __host__ __device__ void setMass(float m) { mass = m; }
 
     // Function to calculate the force update
-    __host__ __device__ float forceUpdate(const Particle3D& particle_j, const float eps, const float sigma){
-        float3 r;
-
-        r.x = particle_j.getPosition().x - position.x;
-        r.y = particle_j.getPosition().y - position.y;
-        r.z = particle_j.getPosition().z - position.z;
-
-        float xij = sqrtf(r.x * r.x + r.y * r.y + r.z * r.z);
-
-        float sigma_xij = sigma / xij;
-        float sigma_xij_6 = powf(sigma_xij, 6);
-
-        float f_scalar = 24 * eps * sigma_xij_6 * ( 2 * powf(sigma_xij, 6) - 1);
-
-        return f_scalar;
-    }
+    __host__ __device__ float forceUpdate(const Particle3D& particle_j, const float eps, const float sigma, float box_extension);
 };
 
-__global__ void compute_force_between_particles(Particle3D* particles, float3* forces, int num_particles, float eps, float sigma);
+__global__ void compute_force_between_particles(Particle3D* particles, float3* forces, int num_particles, float eps, float sigma, float box_extension);
 
-__global__ void apply_integrator_for_particle(Particle3D* particles, float3* forces, int num_particles, float step_size);
+__global__ void apply_integrator_for_particle(Particle3D* particles, float3* forces, int num_particles, float step_size, float box_extension);

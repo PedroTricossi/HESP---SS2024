@@ -48,10 +48,10 @@ INC_DIR = include
 ## Make variables ##
 
 # Target executable name:
-EXE = run_test
+EXE = particle_simulation
 
 # Object files:
-OBJS = $(OBJ_DIR)/*.o
+OBJS = $(OBJ_DIR)/main.o $(OBJ_DIR)/particles.o $(OBJ_DIR)/particle_simulation.o 
 
 ##########################################################
 
@@ -59,7 +59,7 @@ OBJS = $(OBJ_DIR)/*.o
 
 # Link c++ and CUDA compiled object files to target executable:
 $(EXE) : $(OBJS)
-	$(CC) $(CC_FLAGS) $(OBJS) -o $@
+	$(CC) $(CC_FLAGS) $(OBJS) $(CUDA_LIB_DIR) $(CUDA_LINK_LIBS) $(CUDA_INC_DIR) -o $@
 
 # Compile main .cpp file to object files:
 $(OBJ_DIR)/%.o : %.cpp
@@ -68,6 +68,10 @@ $(OBJ_DIR)/%.o : %.cpp
 # Compile C++ source files to object files:
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp src/include
 	$(CC) $(CC_FLAGS) $(CC_LIBS) -c $< -o $@
+
+# Compile CUDA source files to object files:
+$(OBJ_DIR)/%.o : $(SRC_DIR)/%.cu $(INC_DIR)/%.cuh
+	$(NVCC) $(NVCC_FLAGS) -c $< -o $@ $(NVCC_LIBS)
 
 
 # Clean objects in object directory.

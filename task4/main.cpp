@@ -3,8 +3,8 @@
 
 
 int main(int argc, char* argv[]) {
-    if (argc != 7) {
-        std::cerr << "Usage: " << argv[0] << " time_steps step_size num_particles eps sigma box_extension " << std::endl;
+    if (argc != 8) {
+        std::cerr << "Usage: " << argv[0] << " time_steps step_size num_particles eps sigma box_extension cut_off_radious" << std::endl;
         return 1;
     }
 
@@ -14,6 +14,7 @@ int main(int argc, char* argv[]) {
     float eps = std::atof(argv[4]);
     float sigma = std::atof(argv[5]);
     float box_extension = std::atof(argv[6]);
+    float box_extension = std::atof(argv[7]);
 
     std::cout << "BOX: " << box_extension << std::endl;
 

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cmath>
 #include "include/particle_simulation.cuh"
 
 
@@ -15,6 +16,11 @@ int main(int argc, char* argv[]) {
     float sigma = std::atof(argv[5]);
     float box_extension = std::atof(argv[6]);
     float cut_off_radious = std::atof(argv[7]);
+
+    if(fmod(box_extension, cut_off_radious) != 0){
+        std::cerr << "The extension of the boundery MUST be a multiple of the cut-off Radious" << std::endl;
+        return 1;
+    }
 
     std::cout << "BOX: " << box_extension << std::endl;
 

@@ -51,7 +51,7 @@ INC_DIR = include
 EXE = particle_simulation
 
 # Object files:
-OBJS = $(OBJ_DIR)/main.o $(OBJ_DIR)/particles.o $(OBJ_DIR)/particle_simulation.o 
+OBJS = $(OBJ_DIR)/main.o $(OBJ_DIR)/particles.o $(OBJ_DIR)/particle_simulation.o $(OBJ_DIR)/n_list.o 
 
 ##########################################################
 

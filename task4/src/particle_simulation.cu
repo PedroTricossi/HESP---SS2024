@@ -1,9 +1,11 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <cstddef>
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 #include "../include/particles.cuh"
+#include "../include/n_list.cuh"
 
 void writeVTKFile(int step, int num_particles, Particle3D* particles) {
     std::ofstream simulationFile("simulation_" + std::to_string(step) + ".vtk");
@@ -49,16 +51,22 @@ void start_particle_simulation(int time_steps, float step_size, int num_particle
 
     cudaMallocManaged(&particles, num_particles * sizeof(Particle3D));
     cudaMallocManaged(&forces, num_particles * sizeof(float3));
-    
-    std::cout << "BOX: " << box_extension << std::endl;
-    
+
+    t_neighbourList *nb_list = init_neighbourList(box_extension, cut_off_radious);
+        
     for (int i = 0; i < num_particles; ++i) {
-        float x = fmod(i, 10);
+        float x = fmod(i , 10) ;
         float y = (i >= 10) ? fmod(floor(i / 10), 10): 0;
         float z = (i >= 100) ? fmod(floor(i / 100), 10) : 0;
-        particles[i] = Particle3D(float3{ x, y, z }, float3{ 0.0f, 0.0f, 0.0f }, 1.0f);
+        particles[i] = Particle3D(float3{ x, y, z }, float3{ 0.0f, 0.0f, 0.0f }, 1.0f, nullptr);
         forces[i] = float3{ 0.0f, 0.0f, 0.0f };
     }
+
+    for(int i = 0; i < num_particles; i++){
+        add_particle(nb_list, &particles[i], cut_off_radious, box_extension);
+    }
+
+    
 
     writeVTKFile(0, num_particles, particles);
 
@@ -82,3 +90,24 @@ void start_particle_simulation(int time_steps, float step_size, int num_particle
     cudaFree(forces);
 }
 
+void clean_particle(t_neighbourList *neighbourList){
+    t_neighbourList *current_cell = neighbourList;
+
+    while(current_cell != NULL){
+        t_neighbourList *next_cell = current_cell->next;
+        t_point *current_particle = current_cell->particle;
+
+        while (current_particle != NULL)
+        {
+            t_point *next_particle = current_particle->next;
+            current_particle->next = NULL;
+            current_particle = next_particle;
+ 
+        }
+        
+        current_cell->particle = NULL;
+        free(current_cell);
+        current_cell = next_cell;
+    }
+
+}

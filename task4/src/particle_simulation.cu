@@ -37,7 +37,7 @@ void writeVTKFile(int step, int num_particles, Particle3D* particles) {
 }
 
 
-void start_particle_simulation(int time_steps, float step_size, int num_particles, float eps, float sigma, float box_extension){
+void start_particle_simulation(int time_steps, float step_size, int num_particles, float eps, float sigma, float box_extension, float cut_off_radious){
     int deviceId;
     float3* forces;
     Particle3D* particles;
@@ -67,7 +67,7 @@ void start_particle_simulation(int time_steps, float step_size, int num_particle
         cudaMemset(forces, 0, num_particles * sizeof(float3));
 
         // Compute forces using CUDA
-        compute_force_between_particles <<< numberOfBlocks, numberOfThreads >>> (particles, forces, num_particles, eps, sigma, box_extension);
+        compute_force_between_particles <<< numberOfBlocks, numberOfThreads >>> (particles, forces, num_particles, eps, sigma, box_extension, cut_off_radious);
         cudaDeviceSynchronize();
 
         // Integrate particles using CUDA

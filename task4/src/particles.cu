@@ -28,7 +28,7 @@ __device__ float Particle3D::forceUpdate(const Particle3D& particle_j, const flo
         return f_scalar;
 }
 
-__global__ void compute_force_between_particles(Particle3D* particles, float3* forces, int num_particles, float eps, float sigma, float box_extension) {
+__global__ void compute_force_between_particles(Particle3D* particles, float3* forces, int num_particles, float eps, float sigma, float box_extension, float cut_off_radious) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     float3 f;
     float3 r;
@@ -36,12 +36,9 @@ __global__ void compute_force_between_particles(Particle3D* particles, float3* f
     if (i < num_particles) {
         for (int j = 0; j < num_particles; ++j) {
             if (i != j) {
-                float force_ij = particles[i].forceUpdate(particles[j], eps, sigma, box_extension);
                 float dx;
                 float dy;
                 float dz;
-
-
                 dx = particles[j].getPosition().x - particles[i].getPosition().x;
                 dy = particles[j].getPosition().y - particles[i].getPosition().y;
                 dz = particles[j].getPosition().z - particles[i].getPosition().z;
@@ -51,18 +48,22 @@ __global__ void compute_force_between_particles(Particle3D* particles, float3* f
                 r.z = (dz) - int(dz / box_extension) * box_extension;
 
                 float xij = sqrtf(r.x * r.x + r.y * r.y + r.z * r.z);
+                
+                if (xij <= cut_off_radious){
+                    float force_ij = particles[i].forceUpdate(particles[j], eps, sigma, box_extension);
 
-                f.x = force_ij * r.x / xij * xij;
-                f.y = force_ij * r.y / xij * xij;
-                f.z = force_ij * r.z / xij * xij;
+                    f.x = force_ij * r.x / xij * xij;
+                    f.y = force_ij * r.y / xij * xij;
+                    f.z = force_ij * r.z / xij * xij;
 
-                atomicAdd(&forces[i].x, -f.x);
-                atomicAdd(&forces[i].y, -f.y);
-                atomicAdd(&forces[i].z, -f.z);
+                    atomicAdd(&forces[i].x, -f.x);
+                    atomicAdd(&forces[i].y, -f.y);
+                    atomicAdd(&forces[i].z, -f.z);
 
-                atomicAdd(&forces[j].x, f.x);
-                atomicAdd(&forces[j].y, f.y);
-                atomicAdd(&forces[j].z, f.z);
+                    atomicAdd(&forces[j].x, f.x);
+                    atomicAdd(&forces[j].y, f.y);
+                    atomicAdd(&forces[j].z, f.z);
+                }
             }
         }
     }

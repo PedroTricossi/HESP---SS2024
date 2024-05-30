@@ -3,8 +3,8 @@ Lennard-Jones particle simulation
 ASCII 
 DATASET UNSTRUCTURED_GRID 
 POINTS 2 float 
-15.1027 0 0
--14.1027 0 0
+15.1026 0 0
+-14.1026 0 0
 CELLS 0 0
 CELL_TYPES 0
 POINT_DATA 2
@@ -13,5 +13,5 @@ LOOKUP_TABLE default
 1
 1
 VECTORS velocity float 
--648.762 0 0
-648.762 0 0
+-648.763 0 0
+648.763 0 0

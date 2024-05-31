@@ -201,23 +201,23 @@ __global__ void apply_integrator_for_particle(Particle3D* particles, float3* for
         new_position.y = particle.getPosition().y + (step_size * particle.getVelocity().y) + (step_size * step_size * acceleration.y * 0.5f);
         new_position.z = particle.getPosition().z + (step_size * particle.getVelocity().z) + (step_size * step_size * acceleration.z * 0.5f);
 
-        if(new_position.x < -(box_extension * 0.5f))
-            new_position.x = fmod(new_position.x + box_extension, (box_extension * 0.5f));
+        if(new_position.x < 0)
+            new_position.x = fmod(new_position.x + box_extension, (box_extension));
         
-        else if(new_position.x >= (box_extension * 0.5f))
-            new_position.x = fmod(new_position.x - box_extension, -(box_extension * 0.5f));
+        else if(new_position.x >= (box_extension))
+            new_position.x = fmod(new_position.x - box_extension, -(box_extension));
         
-        if(new_position.y < -(box_extension * 0.5f))
-            new_position.y = fmod(new_position.y + box_extension, (box_extension * 0.5f));
+        if(new_position.y < 0)
+            new_position.y = fmod(new_position.y + box_extension, (box_extension));
         
-        else if(new_position.y >= (box_extension * 0.5f))
-            new_position.y = fmod(new_position.y - box_extension, -(box_extension * 0.5f));
+        else if(new_position.y >= (box_extension))
+            new_position.y = fmod(new_position.y - box_extension, -(box_extension));
         
-        if(new_position.z < -(box_extension * 0.5f))
-            new_position.z = fmod(new_position.z + box_extension, (box_extension * 0.5f));
+        if(new_position.z < 0)
+            new_position.z = fmod(new_position.z + box_extension, (box_extension ));
         
-        else if(new_position.z >= (box_extension * 0.5f))
-            new_position.z = fmod(new_position.z - box_extension, -(box_extension * 0.5f));        
+        else if(new_position.z >= (box_extension))
+            new_position.z = fmod(new_position.z - box_extension, -(box_extension));        
 
 
         particle.setPosition(new_position);

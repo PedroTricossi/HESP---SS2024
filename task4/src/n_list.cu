@@ -43,7 +43,7 @@ void add_particle(t_neighbourList *neighbourList, Particle3D *particle, float cu
     float z_pos = floor( particle->getPosition().z / cut_off_radious );
 
     int cell_index = fmod(x_pos + y_pos * num_cell_1d + z_pos * num_cell_1d * num_cell_1d, num_cell_1d * num_cell_1d * num_cell_1d);
-
+	printf("add particle %d, to cell index: %d \n", particle->getId(), cell_index);
     for (int i = 0; i < cell_index; i++){
         current_cell = current_cell->next;
     }

@@ -38,9 +38,9 @@ void add_particle(t_neighbourList *neighbourList, Particle3D *particle, float cu
     Particle3D *current_particle;
     float num_cell_1d = box_extension / cut_off_radious;
 
-    float x_pos = floor( particle->getPosition().x / cut_off_radious );
-    float y_pos = floor( particle->getPosition().y / cut_off_radious );
-    float z_pos = floor( particle->getPosition().z / cut_off_radious );
+    float x_pos = floor( abs(particle->getPosition().x) / cut_off_radious );
+    float y_pos = floor( abs(particle->getPosition().y) / cut_off_radious );
+    float z_pos = floor( abs(particle->getPosition().z) / cut_off_radious );
 
     int cell_index = fmod(x_pos + y_pos * num_cell_1d + z_pos * num_cell_1d * num_cell_1d, num_cell_1d * num_cell_1d * num_cell_1d);
 	printf("add particle %d, to cell index: %d \n", particle->getId(), cell_index);

@@ -53,8 +53,11 @@ public:
 
     // Function to calculate the force update
     __host__ __device__ float forceUpdate(const Particle3D& particle_j, const float eps, const float sigma, float box_extension);
-    __host__ __device__ void get_neighbours(t_neighbourList *neighbourList, t_neighbourList * nb_list, float cut_off_radious, float box_extension);
+    __host__ __device__ void get_neighbours(t_neighbourList *neighbourList, int *nb_list, float cut_off_radious, float box_extension);
+    
 };
+
+__host__ __device__ int calculate_matrix_coordenates(int x, int y, int z, float num_cell_1d, float box_extension);
 
 __global__ void compute_force_between_particles(Particle3D* particles, float3* forces, int num_particles, float eps, float sigma, float box_extension, float cut_off_radious, t_neighbourList* nb_list);
 

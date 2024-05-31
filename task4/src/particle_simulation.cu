@@ -40,35 +40,38 @@ void writeVTKFile(int step, int num_particles, Particle3D* particles) {
 
 
 void start_particle_simulation(int time_steps, float step_size, int num_particles, float eps, float sigma, float box_extension, float cut_off_radious){
-    int deviceId;
     float3* forces;
     Particle3D* particles;
-        
-    cudaGetDevice(&deviceId);
 
     int numberOfThreads = 256;
-    int numberOfBlocks = 32;
+    int numberOfBlocks = 32 * 46;
 
     cudaMallocManaged(&particles, num_particles * sizeof(Particle3D));
     cudaMallocManaged(&forces, num_particles * sizeof(float3));
 
     t_neighbourList *nb_list = init_neighbourList(box_extension, cut_off_radious);
-        
+
+    
+    
     for (int i = 0; i < num_particles; ++i) {
-        float x = fmod(i , 10) ;
-        float y = (i >= 10) ? fmod(floor(i / 10), 10): 0;
-        float z = (i >= 100) ? fmod(floor(i / 100), 10) : 0;
+        float x = fmod(i * 2, 10) ;
+        float y = (i * 2 >= 10) ? fmod(floor(i * 4 / 10), 10): 0;
+        float z = (i * 4 >= 100) ? fmod(floor(i * 8 / 100), 10) : 0;
         particles[i] = Particle3D(float3{ x, y, z }, float3{ 0.0f, 0.0f, 0.0f }, 1.0f, nullptr, i);
         forces[i] = float3{ 0.0f, 0.0f, 0.0f };
     }
+
+    
 
     for(int i = 0; i < num_particles; i++){
         add_particle(nb_list, &particles[i], cut_off_radious, box_extension);
     }
 
+    std::cout << "num_particles: " << num_particles << std::endl;
     
 
     writeVTKFile(0, num_particles, particles);
+    int step = 0;
 
     for (int step = 0; step < time_steps; ++step) {
         // Reset forces
@@ -89,6 +92,8 @@ void start_particle_simulation(int time_steps, float step_size, int num_particle
 
         // Clean the neighbour list
         clean_particle(nb_list);
+
+        nb_list = init_neighbourList(box_extension, cut_off_radious);
 
         for(int i = 0; i < num_particles; i++){
             add_particle(nb_list, &particles[i], cut_off_radious, box_extension);

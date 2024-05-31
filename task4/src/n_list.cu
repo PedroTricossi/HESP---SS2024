@@ -36,24 +36,19 @@ t_neighbourList *init_neighbourList(float box_extension, float cut_off_radious){
 void add_particle(t_neighbourList *neighbourList, Particle3D *particle, float cut_off_radious, float box_extension){
     t_neighbourList *current_cell = neighbourList;
     Particle3D *current_particle;
-    float x_pos = particle->getPosition().x;
-    float y_pos = particle->getPosition().y;
-    float z_pos = particle->getPosition().z;
     float num_cell_1d = box_extension / cut_off_radious;
 
-    // std::cout << "x_pos: " << x_pos << " y_pos: " << y_pos << " z_pos: " << z_pos << std::endl;
+    float x_pos = floor( particle->getPosition().x / cut_off_radious );
+    float y_pos = floor( particle->getPosition().y / cut_off_radious );
+    float z_pos = floor( particle->getPosition().z / cut_off_radious );
 
-    int cell_index = int(x_pos / cut_off_radious) + int(y_pos / cut_off_radious) * num_cell_1d + int(z_pos / cut_off_radious) * num_cell_1d * num_cell_1d;
-
-    // std::cout << "cell_index: " << cell_index << " x_index: " << int(x_pos / cut_off_radious) << std::endl;
+    int cell_index = fmod(x_pos + y_pos * num_cell_1d + z_pos * num_cell_1d * num_cell_1d, num_cell_1d * num_cell_1d * num_cell_1d);
 
     for (int i = 0; i < cell_index; i++){
         current_cell = current_cell->next;
     }
 
     if(current_cell->particle == nullptr ){
-        // std::cout << "Adding particle to cell: " << cell_index << std::endl;
-
         particle->setNextParticle(nullptr);
 
         current_cell->particle = particle;
@@ -65,8 +60,6 @@ void add_particle(t_neighbourList *neighbourList, Particle3D *particle, float cu
     current_particle = current_cell->particle;
 
     while(current_particle->getNextParticle() != nullptr ){
-        // std::cout << "current_particle:" << current_particle->getMass() << std::endl;
-
         current_particle = current_particle->getNextParticle();
     }
     
@@ -94,8 +87,10 @@ void clean_particle(t_neighbourList *neighbourList){
  
         }
         
+        // printf("Cleaning cell: %d\n", current_cell->id);
+
         current_cell->particle = nullptr;
-        // free(current_cell);
+        cudaFree(current_cell);
         current_cell = next_cell;
     }
 }

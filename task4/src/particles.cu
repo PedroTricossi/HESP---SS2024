@@ -1,7 +1,9 @@
 #include <cmath>
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
+#include <iostream>
 #include "../include/particles.cuh"
+#include "../include/n_list.cuh"
 
 __device__ float Particle3D::forceUpdate(const Particle3D& particle_j, const float eps, const float sigma, float box_extension)
 {
@@ -28,43 +30,132 @@ __device__ float Particle3D::forceUpdate(const Particle3D& particle_j, const flo
         return f_scalar;
 }
 
-__global__ void compute_force_between_particles(Particle3D* particles, float3* forces, int num_particles, float eps, float sigma, float box_extension, float cut_off_radious) {
+__device__ void Particle3D::get_neighbours(t_neighbourList *neighbourList, t_neighbourList * nb_list, float cut_off_radious, float box_extension){
+    float num_cell_1d = box_extension / cut_off_radious;
+
+    int x_pos = int(position.x / cut_off_radious);
+    int y_pos = int(position.y / cut_off_radious) * num_cell_1d;
+    int z_pos = int(position.z / cut_off_radious) * num_cell_1d * num_cell_1d;
+    
+    int cell_index_0 = x_pos + y_pos + z_pos;
+    int cell_index_1 = x_pos + y_pos + (z_pos + 1 > num_cell_1d ? 0 : z_pos + 1);
+    int cell_index_2 = x_pos + y_pos + (z_pos - 1 < 0 ? num_cell_1d : z_pos - 1);
+    int cell_index_3 = x_pos + (y_pos + 1 > num_cell_1d ? 0 : y_pos + 1 ) + z_pos;
+    int cell_index_4 = x_pos + (y_pos - 1 < 0 ? num_cell_1d : y_pos - 1 ) + z_pos;
+    int cell_index_5 = x_pos + (y_pos + 1 > num_cell_1d ? 0 : y_pos + 1 ) + (z_pos + 1 > num_cell_1d ? 0 : z_pos + 1);
+    int cell_index_6 = x_pos + (y_pos + 1 > num_cell_1d ? 0 : y_pos + 1 ) + (z_pos - 1 < 0 ? num_cell_1d : z_pos - 1);
+    int cell_index_7 = x_pos + (y_pos - 1 < 0 ? num_cell_1d : y_pos - 1 ) + (z_pos + 1 > num_cell_1d ? 0 : z_pos + 1);
+    int cell_index_8 = x_pos + (y_pos - 1 < 0 ? num_cell_1d : y_pos - 1 ) + (z_pos - 1 < 0 ? num_cell_1d : z_pos - 1);
+    int cell_index_9 = (x_pos + 1 > num_cell_1d ? 0 : x_pos + 1 ) + y_pos + z_pos;
+    int cell_index_10 = (x_pos - 1 < 0 ? num_cell_1d : x_pos - 1 ) + y_pos + z_pos;
+    int cell_index_11 = (x_pos + 1 > num_cell_1d ? 0 : x_pos + 1 ) + y_pos + (z_pos + 1 > num_cell_1d ? 0 : z_pos + 1);
+    int cell_index_12 = (x_pos - 1 < 0 ? num_cell_1d : x_pos - 1 ) + y_pos + (z_pos + 1 > num_cell_1d ? 0 : z_pos + 1);
+    int cell_index_13 = (x_pos + 1 > num_cell_1d ? 0 : x_pos + 1 ) + y_pos + (z_pos - 1 < 0 ? num_cell_1d : z_pos - 1);
+    int cell_index_14 = (x_pos - 1 < 0 ? num_cell_1d : x_pos - 1 ) + y_pos + (z_pos - 1 < 0 ? num_cell_1d : z_pos - 1);
+    int cell_index_15 = (x_pos + 1 > num_cell_1d ? 0 : x_pos + 1 ) + (y_pos + 1 > num_cell_1d ? 0 : y_pos + 1 ) + z_pos;
+    int cell_index_16 = (x_pos - 1 < 0 ? num_cell_1d : x_pos - 1 ) + (y_pos + 1 > num_cell_1d ? 0 : y_pos + 1 ) + z_pos;
+    int cell_index_17 = (x_pos + 1 > num_cell_1d ? 0 : x_pos + 1 ) + (y_pos - 1 < 0 ? num_cell_1d : y_pos - 1 ) + z_pos;
+    int cell_index_18 = (x_pos - 1 < 0 ? num_cell_1d : x_pos - 1 ) + (y_pos - 1 < 0 ? num_cell_1d : y_pos - 1 ) + z_pos;
+    int cell_index_19 = (x_pos + 1 > num_cell_1d ? 0 : x_pos + 1 ) + (y_pos + 1 > num_cell_1d ? 0 : y_pos + 1 ) + (z_pos + 1 > num_cell_1d ? 0 : z_pos + 1);
+    int cell_index_20 = (x_pos - 1 < 0 ? num_cell_1d : x_pos - 1 ) + (y_pos + 1 > num_cell_1d ? 0 : y_pos + 1 ) + (z_pos + 1 > num_cell_1d ? 0 : z_pos + 1);
+    int cell_index_21 = (x_pos + 1 > num_cell_1d ? 0 : x_pos + 1 ) + (y_pos + 1 > num_cell_1d ? 0 : y_pos + 1 ) + (z_pos - 1 < 0 ? num_cell_1d : z_pos - 1);
+    int cell_index_22 = (x_pos - 1 < 0 ? num_cell_1d : x_pos - 1 ) + (y_pos + 1 > num_cell_1d ? 0 : y_pos + 1 ) + (z_pos - 1 < 0 ? num_cell_1d : z_pos - 1);
+    int cell_index_23 = (x_pos + 1 > num_cell_1d ? 0 : x_pos + 1 ) + (y_pos - 1 < 0 ? num_cell_1d : y_pos - 1 ) + (z_pos + 1 > num_cell_1d ? 0 : z_pos + 1);
+    int cell_index_24 = (x_pos - 1 < 0 ? num_cell_1d : x_pos - 1 ) + (y_pos - 1 < 0 ? num_cell_1d : y_pos - 1 ) + (z_pos + 1 > num_cell_1d ? 0 : z_pos + 1);
+    int cell_index_25 = (x_pos + 1 > num_cell_1d ? 0 : x_pos + 1 ) + (y_pos - 1 < 0 ? num_cell_1d : y_pos - 1 ) + (z_pos - 1 < 0 ? num_cell_1d : z_pos - 1);
+    int cell_index_26 = (x_pos - 1 < 0 ? num_cell_1d : x_pos - 1 ) + (y_pos - 1 < 0 ? num_cell_1d : y_pos - 1 ) + (z_pos - 1 < 0 ? num_cell_1d : z_pos - 1);
+
+
+    nb_list[0] = neighbourList[cell_index_0];
+    nb_list[1] = neighbourList[cell_index_1];
+    nb_list[2] = neighbourList[cell_index_2];
+    nb_list[3] = neighbourList[cell_index_3];
+    nb_list[4] = neighbourList[cell_index_4];
+    nb_list[5] = neighbourList[cell_index_5];
+    nb_list[6] = neighbourList[cell_index_6];
+    nb_list[7] = neighbourList[cell_index_7];
+    nb_list[8] = neighbourList[cell_index_8];
+    nb_list[9] = neighbourList[cell_index_9];
+    nb_list[10] = neighbourList[cell_index_10];
+    nb_list[11] = neighbourList[cell_index_11];
+    nb_list[12] = neighbourList[cell_index_12];
+    nb_list[13] = neighbourList[cell_index_13];
+    nb_list[14] = neighbourList[cell_index_14];
+    nb_list[15] = neighbourList[cell_index_15];
+    nb_list[16] = neighbourList[cell_index_16];
+    nb_list[17] = neighbourList[cell_index_17];
+    nb_list[18] = neighbourList[cell_index_18];
+    nb_list[19] = neighbourList[cell_index_19];
+    nb_list[20] = neighbourList[cell_index_20];
+    nb_list[21] = neighbourList[cell_index_21];
+    nb_list[22] = neighbourList[cell_index_22];
+    nb_list[23] = neighbourList[cell_index_23];
+    nb_list[24] = neighbourList[cell_index_24];
+    nb_list[25] = neighbourList[cell_index_25];
+    nb_list[26] = neighbourList[cell_index_26];
+}
+
+__global__ void compute_force_between_particles(Particle3D* particles, float3* forces, int num_particles, float eps, float sigma, float box_extension, float cut_off_radious, t_neighbourList* nb_list) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     float3 f;
     float3 r;
+    t_neighbourList particle_nb[27];
+
 
     if (i < num_particles) {
-        for (int j = 0; j < num_particles; ++j) {
-            if (i != j) {
-                float dx;
-                float dy;
-                float dz;
-                dx = particles[j].getPosition().x - particles[i].getPosition().x;
-                dy = particles[j].getPosition().y - particles[i].getPosition().y;
-                dz = particles[j].getPosition().z - particles[i].getPosition().z;
+        particles[i].get_neighbours(nb_list, particle_nb, cut_off_radious, box_extension);
 
-                r.x = (dx) - int(dx / box_extension) * box_extension;
-                r.y = (dy) - int(dy / box_extension) * box_extension;
-                r.z = (dz) - int(dz / box_extension) * box_extension;
+        for(int k = 0; k < 27; k++){
+            if(particle_nb[k].num_particles > 0){
+                Particle3D* particles_in_cell = particle_nb[k].particle;
+                while(particles_in_cell != nullptr){
+                    if(particles_in_cell->getId() != particles[i].getId()){
+                        float force_ij = particles[i].forceUpdate(*particles_in_cell, eps, sigma, box_extension);
 
-                float xij = sqrtf(r.x * r.x + r.y * r.y + r.z * r.z);
-                
-                if (xij <= cut_off_radious){
-                    float force_ij = particles[i].forceUpdate(particles[j], eps, sigma, box_extension);
+                        printf("force_ij: %f\n", force_ij);
 
-                    f.x = force_ij * r.x / xij * xij;
-                    f.y = force_ij * r.y / xij * xij;
-                    f.z = force_ij * r.z / xij * xij;
+                        r.x = particles_in_cell->getPosition().x - particles[i].getPosition().x;
+                        r.y = particles_in_cell->getPosition().y - particles[i].getPosition().y;
+                        r.z = particles_in_cell->getPosition().z - particles[i].getPosition().z;
 
-                    atomicAdd(&forces[i].x, -f.x);
-                    atomicAdd(&forces[i].y, -f.y);
-                    atomicAdd(&forces[i].z, -f.z);
+                        float xij = sqrtf(r.x * r.x + r.y * r.y + r.z * r.z);
 
-                    atomicAdd(&forces[j].x, f.x);
-                    atomicAdd(&forces[j].y, f.y);
-                    atomicAdd(&forces[j].z, f.z);
+                        f.x = force_ij * r.x / xij * xij;
+                        f.y = force_ij * r.y / xij * xij;
+                        f.z = force_ij * r.z / xij * xij;
+
+                        atomicAdd(&forces[i].x, -f.x);
+                        atomicAdd(&forces[i].y, -f.y);
+                        atomicAdd(&forces[i].z, -f.z);
+
+                        atomicAdd(&forces[k].x, f.x);
+                        atomicAdd(&forces[k].y, f.y);
+                        atomicAdd(&forces[k].z, f.z);
+                    }
+                    particles_in_cell = particles_in_cell->getNextParticle();
+                    // printf("particles_in_cell: %p\n", (void *) particles_in_cell);
                 }
+                // printf("out of while\n");
             }
+                
+
+                
+                // if (xij <= cut_off_radious){
+                //     float force_ij = particles[i].forceUpdate(particles[j], eps, sigma, box_extension);
+
+                //     f.x = force_ij * r.x / xij * xij;
+                //     f.y = force_ij * r.y / xij * xij;
+                //     f.z = force_ij * r.z / xij * xij;
+
+                //     atomicAdd(&forces[i].x, -f.x);
+                //     atomicAdd(&forces[i].y, -f.y);
+                //     atomicAdd(&forces[i].z, -f.z);
+
+                //     atomicAdd(&forces[j].x, f.x);
+                //     atomicAdd(&forces[j].y, f.y);
+                //     atomicAdd(&forces[j].z, f.z);
+                // }
+            
         }
     }
 }

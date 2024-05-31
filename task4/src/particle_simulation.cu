@@ -58,7 +58,7 @@ void start_particle_simulation(int time_steps, float step_size, int num_particle
         float x = fmod(i , 10) ;
         float y = (i >= 10) ? fmod(floor(i / 10), 10): 0;
         float z = (i >= 100) ? fmod(floor(i / 100), 10) : 0;
-        particles[i] = Particle3D(float3{ x, y, z }, float3{ 0.0f, 0.0f, 0.0f }, 1.0f, nullptr);
+        particles[i] = Particle3D(float3{ x, y, z }, float3{ 0.0f, 0.0f, 0.0f }, 1.0f, nullptr, i);
         forces[i] = float3{ 0.0f, 0.0f, 0.0f };
     }
 
@@ -74,8 +74,10 @@ void start_particle_simulation(int time_steps, float step_size, int num_particle
         // Reset forces
         cudaMemset(forces, 0, num_particles * sizeof(float3));
 
+        // std::cout << "particle: " << particles[1].getPosition().x << " " << particles[1].getPosition().y << " " << particles[1].getPosition().z << std::endl;
+
         // Compute forces using CUDA
-        compute_force_between_particles <<< numberOfBlocks, numberOfThreads >>> (particles, forces, num_particles, eps, sigma, box_extension, cut_off_radious);
+        compute_force_between_particles <<< numberOfBlocks, numberOfThreads >>> (particles, forces, num_particles, eps, sigma, box_extension, cut_off_radious, nb_list);
         cudaDeviceSynchronize();
 
         // Integrate particles using CUDA
@@ -84,30 +86,16 @@ void start_particle_simulation(int time_steps, float step_size, int num_particle
 
         // Write the VTK file
         writeVTKFile(step + 1, num_particles, particles);
+
+        // Clean the neighbour list
+        clean_particle(nb_list);
+
+        for(int i = 0; i < num_particles; i++){
+            add_particle(nb_list, &particles[i], cut_off_radious, box_extension);
+        }
     }
 
     cudaFree(particles);
     cudaFree(forces);
 }
 
-void clean_particle(t_neighbourList *neighbourList){
-    t_neighbourList *current_cell = neighbourList;
-
-    while(current_cell != NULL){
-        t_neighbourList *next_cell = current_cell->next;
-        t_point *current_particle = current_cell->particle;
-
-        while (current_particle != NULL)
-        {
-            t_point *next_particle = current_particle->next;
-            current_particle->next = NULL;
-            current_particle = next_particle;
- 
-        }
-        
-        current_cell->particle = NULL;
-        free(current_cell);
-        current_cell = next_cell;
-    }
-
-}

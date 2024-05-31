@@ -41,16 +41,18 @@ void add_particle(t_neighbourList *neighbourList, Particle3D *particle, float cu
     float z_pos = particle->getPosition().z;
     float num_cell_1d = box_extension / cut_off_radious;
 
+    // std::cout << "x_pos: " << x_pos << " y_pos: " << y_pos << " z_pos: " << z_pos << std::endl;
+
     int cell_index = int(x_pos / cut_off_radious) + int(y_pos / cut_off_radious) * num_cell_1d + int(z_pos / cut_off_radious) * num_cell_1d * num_cell_1d;
 
-    std::cout << "cell_index: " << cell_index << " x_index: " << int(x_pos / cut_off_radious) << std::endl;
+    // std::cout << "cell_index: " << cell_index << " x_index: " << int(x_pos / cut_off_radious) << std::endl;
 
     for (int i = 0; i < cell_index; i++){
         current_cell = current_cell->next;
     }
 
     if(current_cell->particle == nullptr ){
-        std::cout << "Adding particle to cell: " << cell_index << std::endl;
+        // std::cout << "Adding particle to cell: " << cell_index << std::endl;
 
         particle->setNextParticle(nullptr);
 
@@ -68,7 +70,7 @@ void add_particle(t_neighbourList *neighbourList, Particle3D *particle, float cu
         current_particle = current_particle->getNextParticle();
     }
     
-    std::cout << "Adding particle to cell: " << cell_index << std::endl;
+    // std::cout << "Adding particle to cell: " << cell_index << std::endl;
     particle->setNextParticle(nullptr);
     current_particle->setNextParticle(particle);
     current_cell->num_particles++;
@@ -80,6 +82,7 @@ void clean_particle(t_neighbourList *neighbourList){
     t_neighbourList *current_cell = neighbourList;
 
     while(current_cell != nullptr){
+        // std::cout << "Cleaning cell: " << current_cell->id << std::endl;
         t_neighbourList *next_cell = current_cell->next;
         Particle3D *current_particle = current_cell->particle;
 
@@ -92,8 +95,9 @@ void clean_particle(t_neighbourList *neighbourList){
         }
         
         current_cell->particle = nullptr;
-        free(current_cell);
+        // free(current_cell);
         current_cell = next_cell;
     }
-
 }
+
+

@@ -117,52 +117,50 @@ __global__ void compute_force_between_particles(Particle3D* particles, float3* f
     int particle_nb[27];
 
     if (i < num_particles) {
+        // printf("particle: %d\n", particles[i].getId());
         particles[i].get_neighbours(nb_list, particle_nb, cut_off_radious, box_extension);
 
-        // printf("particle id: %d\n", particles[i].getId());
+        // if(nb_list[0].num_particles > 1){
+        //     printf("cell 0 has %d particles\n", nb_list[0].num_particles);
+        //     printf("particle_1: %d\n", nb_list[0].particle->getId());
+        //     printf("particle_2: %d\n", nb_list[0].particle->getNextParticle()->getId());
+        // }
+        
         for(int k = 0; k < 27; k++){
             int cell_index = particle_nb[k];
-            t_neighbourList *current_cell = nb_list;
-
-            for (int j = 0; j < cell_index; j++){
-                current_cell = current_cell->next;
-            }
-
-            Particle3D *current_particle = current_cell->particle;
-
-            // printf("current_particle: %d\n", current_particle->getId());
-            
-
-            while(current_particle != nullptr){
-                if(current_particle->getId() != particles[i].getId()){
-                    r.x = current_particle->getPosition().x - particles[i].getPosition().x;
-                    r.y = current_particle->getPosition().y - particles[i].getPosition().y;
-                    r.z = current_particle->getPosition().z - particles[i].getPosition().z;
-
-                    float xij = sqrtf(r.x * r.x + r.y * r.y + r.z * r.z);
-
-                    float force_ij = particles[i].forceUpdate(*current_particle, eps, sigma, box_extension);
-
-                    f.x = force_ij * r.x / xij * xij;
-                    f.y = force_ij * r.y / xij * xij;
-                    f.z = force_ij * r.z / xij * xij;
-
-                    // printf("force_ij: %f\n", f.x);
+            if(nb_list[cell_index].num_particles != 0){
+                Particle3D *current_particle = nb_list[cell_index].particle;
+                
+                while(current_particle != nullptr){
 
 
-                    atomicAdd(&forces[i].x, -f.x);
-                    atomicAdd(&forces[i].y, -f.y);
-                    atomicAdd(&forces[i].z, -f.z);
+                    if(current_particle->getId() != particles[i].getId()){
+                        r.x = current_particle->getPosition().x - particles[i].getPosition().x;
+                        r.y = current_particle->getPosition().y - particles[i].getPosition().y;
+                        r.z = current_particle->getPosition().z - particles[i].getPosition().z;
 
-                    
+                        float xij = sqrtf(r.x * r.x + r.y * r.y + r.z * r.z);
 
-                    atomicAdd(&forces[current_particle->getId()].x, f.x);
-                    atomicAdd(&forces[current_particle->getId()].y, f.y);
-                    atomicAdd(&forces[current_particle->getId()].z, f.z);
-                }   
-                current_particle = current_particle->getNextParticle();
-            }
-            
+                        float force_ij = particles[i].forceUpdate(*current_particle, eps, sigma, box_extension);
+
+                        printf("force_ij: %f\n", force_ij);
+
+                        f.x = force_ij * (r.x / (xij * xij));
+                        f.y = force_ij * (r.y / (xij * xij));
+                        f.z = force_ij * (r.z / (xij * xij));
+
+                        atomicAdd(&forces[i].x, -f.x);
+                        atomicAdd(&forces[i].y, -f.y);
+                        atomicAdd(&forces[i].z, -f.z);
+
+
+            //             // atomicAdd(&forces[current_particle->getId()].x, f.x);
+            //             // atomicAdd(&forces[current_particle->getId()].y, f.y);
+            //             // atomicAdd(&forces[current_particle->getId()].z, f.z);
+                    }
+                    current_particle = current_particle->getNextParticle();
+                }
+            }   
         }
         
         // for (int j = 0; j < num_particles; ++j) {

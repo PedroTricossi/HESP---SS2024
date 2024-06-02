@@ -23,15 +23,13 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    std::cout << "BOX: " << box_extension << std::endl;
-
     auto start = std::chrono::steady_clock::now();
 
     start_particle_simulation(time_steps, step_size, num_particles, eps, sigma, box_extension, cut_off_radious);
 
     auto end = std::chrono::steady_clock::now();
 
-    printf("Time: %f\n", std::chrono::duration<double>(end - start).count());
+    printf(" %f\n", std::chrono::duration<double>(end - start).count());
 
     return 0;
 }

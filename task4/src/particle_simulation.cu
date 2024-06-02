@@ -40,7 +40,7 @@ void writeVTKFile(int step, int num_particles, Particle3D* particles) {
 
 
 void start_particle_simulation(int time_steps, float step_size, int num_particles, float eps, float sigma, float box_extension, float cut_off_radious){
-    float3* forces;
+    float3 *forces;
     Particle3D* particles;
 
     int numberOfThreads = 256;
@@ -51,54 +51,60 @@ void start_particle_simulation(int time_steps, float step_size, int num_particle
 
     t_neighbourList *nb_list = init_neighbourList(box_extension, cut_off_radious);
 
+    // t_neighbourList *nb_list = nullptr;
+
     
     
     for (int i = 0; i < num_particles; ++i) {
-        float x = fmod(i * 2, 10) ;
-        float y = (i * 2 >= 10) ? fmod(floor(i * 4 / 10), 10): 0;
-        float z = (i * 4 >= 100) ? fmod(floor(i * 8 / 100), 10) : 0;
+        float x = fmod(i * 2, box_extension) ;
+        float y = (i * 2 >= 10) ? fmod(floor(i * 4 / 10), box_extension): 0;
+        float z = (i * 4 >= 100) ? fmod(floor(i * 8 / 100), box_extension) : 0;
         particles[i] = Particle3D(float3{ x, y, z }, float3{ 0.0f, 0.0f, 0.0f }, 1.0f, nullptr, i);
         forces[i] = float3{ 0.0f, 0.0f, 0.0f };
     }
 
-    
+    add_particles<<< numberOfBlocks, numberOfThreads >>>(nb_list, particles, num_particles, cut_off_radious, box_extension);
+    cudaDeviceSynchronize();
 
     for(int i = 0; i < num_particles; i++){
-        add_particle(nb_list, &particles[i], cut_off_radious, box_extension);
+        printf("cell %d has %d particles\n",i, nb_list[i].num_particles);
     }
+    
 
     std::cout << "num_particles: " << num_particles << std::endl;
     
 
     writeVTKFile(0, num_particles, particles);
-    int step = 0;
+    // int step = 0;
 
-    for (int step = 0; step < time_steps; ++step) {
+    // for (int step = 0; step < time_steps; ++step) {
         // Reset forces
-        cudaMemset(forces, 0, num_particles * sizeof(float3));
+        // cudaMemset(forces, 0, num_particles * sizeof(float3));
 
-        // std::cout << "particle: " << particles[1].getPosition().x << " " << particles[1].getPosition().y << " " << particles[1].getPosition().z << std::endl;
+        // // std::cout << "particle: " << particles[1].getPosition().x << " " << particles[1].getPosition().y << " " << particles[1].getPosition().z << std::endl;
+        // printf("step: %d\n", step);
+        
 
-        // Compute forces using CUDA
-        compute_force_between_particles <<< numberOfBlocks, numberOfThreads >>> (particles, forces, num_particles, eps, sigma, box_extension, cut_off_radious, nb_list);
-        cudaDeviceSynchronize();
+        // // Compute forces using CUDA
+        // compute_force_between_particles <<< numberOfBlocks, numberOfThreads >>> (particles, forces, num_particles, eps, sigma, box_extension, cut_off_radious, nb_list);
+        // cudaDeviceSynchronize();
 
-        // Integrate particles using CUDA
-        apply_integrator_for_particle <<< numberOfBlocks, numberOfThreads >>> (particles, forces, num_particles, step_size, box_extension);
-        cudaDeviceSynchronize();
+        // // // Integrate particles using CUDA
+        // apply_integrator_for_particle <<< numberOfBlocks, numberOfThreads >>> (particles, forces, num_particles, step_size, box_extension);
+        // cudaDeviceSynchronize();
 
-        // Write the VTK file
-        writeVTKFile(step + 1, num_particles, particles);
+        // // // Write the VTK file
+        // writeVTKFile(step + 1, num_particles, particles);
 
-        // Clean the neighbour list
-        clean_particle(nb_list);
+        // // Clean the neighbour list
+        // clean_particle(nb_list);
 
-        nb_list = init_neighbourList(box_extension, cut_off_radious);
+        // nb_list = init_neighbourList(box_extension, cut_off_radious);
 
-        for(int i = 0; i < num_particles; i++){
-            add_particle(nb_list, &particles[i], cut_off_radious, box_extension);
-        }
-    }
+        // for(int i = 0; i < num_particles; i++){
+        //     add_particle(nb_list, &particles[i], cut_off_radious, box_extension);
+        // }
+    // }
 
     cudaFree(particles);
     cudaFree(forces);

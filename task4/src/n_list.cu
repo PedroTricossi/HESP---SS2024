@@ -1,72 +1,77 @@
 #include "../include/n_list.cuh"
 #include <iostream>
+#include <cuda/semaphore>
+#include <cuda/atomic>
 #include <cstddef>
 #include <cmath>
+
+__device__ cuda::binary_semaphore<cuda::thread_scope_device> s(1);
 
 t_neighbourList *init_neighbourList(float box_extension, float cut_off_radious){
     float num_cell_1d = box_extension / cut_off_radious;
     float num_cell_total = powf(num_cell_1d, 3);
     t_neighbourList *nb_list;
 
-    cudaMallocManaged(&nb_list, sizeof(t_neighbourList));
+    cudaMallocManaged(&nb_list, num_cell_total * sizeof(t_neighbourList));
 
-    nb_list->next = nullptr ;
-    nb_list->particle = nullptr ;
-    nb_list->num_particles = 0;
-    nb_list->id = 0;
+    for(int i = 0; i < num_cell_total; i++){
+        nb_list[i].next = nullptr ;
+        nb_list[i].particle = nullptr ;
+        nb_list[i].num_particles = 0;
+        nb_list[i].id = i;
 
-    t_neighbourList *prev_cell = nb_list;
-
-    for(int i = 1; i < num_cell_total; i++){
-        t_neighbourList *new_cell;
-        cudaMallocManaged(&new_cell, sizeof(t_neighbourList));
-
-        new_cell->next = nullptr ;
-        new_cell->particle = nullptr ;
-        new_cell->num_particles = 0;
-        new_cell->id = i;
-
-        prev_cell->next = new_cell;
-        prev_cell = new_cell;
+        if(i > 0){
+            nb_list[i-1].next = &nb_list[i];
+        }
     }
 
     return nb_list;
 }
 
-void add_particle(t_neighbourList *neighbourList, Particle3D *particle, float cut_off_radious, float box_extension){
-    t_neighbourList *current_cell = neighbourList;
+__global__ void add_particles(t_neighbourList *neighbourList, Particle3D *particles, int num_particles, float cut_off_radious, float box_extension){
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index < num_particles){
+        // printf("Adding particle %d\n", index);
+        add_particle(neighbourList, &particles[index], cut_off_radious, box_extension);
+    }
+}
+
+__device__ void add_particle(t_neighbourList *neighbourList, Particle3D *particle, float cut_off_radious, float box_extension){
+    t_neighbourList *current_cell;
     Particle3D *current_particle;
     float num_cell_1d = box_extension / cut_off_radious;
+    int mutex = 0;
 
-    float x_pos = floor( abs(particle->getPosition().x) / cut_off_radious );
-    float y_pos = floor( abs(particle->getPosition().y) / cut_off_radious );
-    float z_pos = floor( abs(particle->getPosition().z) / cut_off_radious );
+    float x_pos = floor( particle->getPosition().x / cut_off_radious );
+    float y_pos = floor( particle->getPosition().y / cut_off_radious );
+    float z_pos = floor( particle->getPosition().z / cut_off_radious );
 
     int cell_index = fmod(x_pos + y_pos * num_cell_1d + z_pos * num_cell_1d * num_cell_1d, num_cell_1d * num_cell_1d * num_cell_1d);
+
 	printf("add particle %d, to cell index: %d \n", particle->getId(), cell_index);
-    for (int i = 0; i < cell_index; i++){
-        current_cell = current_cell->next;
-    }
 
+    current_cell = &neighbourList[cell_index];
+    
     if(current_cell->particle == nullptr ){
-        particle->setNextParticle(nullptr);
-
+        s.acquire();
         current_cell->particle = particle;
-        current_cell->num_particles++;
+
+        atomicAdd(&current_cell->num_particles, 1);
+        s.release();
 
         return;
     }
 
     current_particle = current_cell->particle;
 
+    s.acquire();
     while(current_particle->getNextParticle() != nullptr ){
         current_particle = current_particle->getNextParticle();
     }
     
-    // std::cout << "Adding particle to cell: " << cell_index << std::endl;
-    particle->setNextParticle(nullptr);
     current_particle->setNextParticle(particle);
     current_cell->num_particles++;
+    s.release();
 
     return;
 }

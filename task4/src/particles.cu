@@ -111,23 +111,27 @@ __device__ void Particle3D::get_neighbours(t_neighbourList *neighbourList, int *
 
 __global__ void compute_force_between_particles(Particle3D* particles, float3* forces, int num_particles, float eps, float sigma, float box_extension, float cut_off_radious, t_neighbourList* nb_list) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
+    
     float3 f;
     float3 r;
     int particle_nb[27];
 
     if (i < num_particles) {
-        
         particles[i].get_neighbours(nb_list, particle_nb, cut_off_radious, box_extension);
 
         // printf("particle id: %d\n", particles[i].getId());
         for(int k = 0; k < 27; k++){
             int cell_index = particle_nb[k];
             t_neighbourList *current_cell = nb_list;
+
             for (int j = 0; j < cell_index; j++){
                 current_cell = current_cell->next;
             }
 
             Particle3D *current_particle = current_cell->particle;
+
+            // printf("current_particle: %d\n", current_particle->getId());
+            
 
             while(current_particle != nullptr){
                 if(current_particle->getId() != particles[i].getId()){
@@ -137,46 +141,75 @@ __global__ void compute_force_between_particles(Particle3D* particles, float3* f
 
                     float xij = sqrtf(r.x * r.x + r.y * r.y + r.z * r.z);
 
-                    if (xij <= cut_off_radious){
-                        float force_ij = particles[i].forceUpdate(*current_particle, eps, sigma, box_extension);
+                    float force_ij = particles[i].forceUpdate(*current_particle, eps, sigma, box_extension);
 
-                        f.x = force_ij * r.x / xij * xij;
-                        f.y = force_ij * r.y / xij * xij;
-                        f.z = force_ij * r.z / xij * xij;
+                    f.x = force_ij * r.x / xij * xij;
+                    f.y = force_ij * r.y / xij * xij;
+                    f.z = force_ij * r.z / xij * xij;
 
-                        atomicAdd(&forces[i].x, -f.x);
-                        atomicAdd(&forces[i].y, -f.y);
-                        atomicAdd(&forces[i].z, -f.z);
+                    // printf("force_ij: %f\n", f.x);
 
-                        atomicAdd(&forces[current_particle->getId()].x, f.x);
-                        atomicAdd(&forces[current_particle->getId()].y, f.y);
-                        atomicAdd(&forces[current_particle->getId()].z, f.z);
-                    }
-                }
+
+                    atomicAdd(&forces[i].x, -f.x);
+                    atomicAdd(&forces[i].y, -f.y);
+                    atomicAdd(&forces[i].z, -f.z);
+
+                    
+
+                    atomicAdd(&forces[current_particle->getId()].x, f.x);
+                    atomicAdd(&forces[current_particle->getId()].y, f.y);
+                    atomicAdd(&forces[current_particle->getId()].z, f.z);
+                }   
                 current_particle = current_particle->getNextParticle();
             }
             
         }
+        
+        // for (int j = 0; j < num_particles; ++j) {
+        //     if (i != j) {
+        //         r.x = particles[j].getPosition().x - particles[i].getPosition().x;
+        //         r.y = particles[j].getPosition().y - particles[i].getPosition().y;
+        //         r.z = particles[j].getPosition().z - particles[i].getPosition().z;
 
+        //         float xij = sqrtf(r.x * r.x + r.y * r.y + r.z * r.z);
+        //         // if (xij <= cut_off_radious){
+        //             float force_ij = particles[i].forceUpdate(particles[j], eps, sigma,box_extension);
+                    
+        //             f.x = force_ij * r.x / xij * xij;
+        //             f.y = force_ij * r.y / xij * xij;
+        //             f.z = force_ij * r.z / xij * xij;
+
+        //             atomicAdd(&forces[i].x, -f.x);
+        //             atomicAdd(&forces[i].y, -f.y);
+        //             atomicAdd(&forces[i].z, -f.z);
+
+        //             atomicAdd(&forces[j].x, f.x);
+        //             atomicAdd(&forces[j].y, f.y);
+        //             atomicAdd(&forces[j].z, f.z);
+        //         // }
+        //     }
+        // }
+    }
 
                 
-                // if (xij <= cut_off_radious){
-                //     float force_ij = particles[i].forceUpdate(particles[j], eps, sigma, box_extension);
+        
+        //     float force_ij = particles[i].forceUpdate(particles[j], eps, sigma, box_extension);
 
-                //     f.x = force_ij * r.x / xij * xij;
-                //     f.y = force_ij * r.y / xij * xij;
-                //     f.z = force_ij * r.z / xij * xij;
+        //     f.x = force_ij * r.x / xij * xij;
+        //     f.y = force_ij * r.y / xij * xij;
+        //     f.z = force_ij * r.z / xij * xij;
 
-                //     atomicAdd(&forces[i].x, -f.x);
-                //     atomicAdd(&forces[i].y, -f.y);
-                //     atomicAdd(&forces[i].z, -f.z);
+        //     atomicAdd(&forces[i].x, -f.x);
+        //     atomicAdd(&forces[i].y, -f.y);
+        //     atomicAdd(&forces[i].z, -f.z);
 
-                //     atomicAdd(&forces[j].x, f.x);
-                //     atomicAdd(&forces[j].y, f.y);
-                //     atomicAdd(&forces[j].z, f.z);
-                // }
+        //     atomicAdd(&forces[j].x, f.x);
+        //     atomicAdd(&forces[j].y, f.y);
+        //     atomicAdd(&forces[j].z, f.z);
+        // }
+
             
-        }
+        
     }
 // }
 
@@ -187,10 +220,13 @@ __global__ void apply_integrator_for_particle(Particle3D* particles, float3* for
         float3 acceleration;
         float3 half_speed;
         float3 new_position;
+        float3 new_position_boundary;
 
         acceleration.x = forces[i].x / particle.getMass();
         acceleration.y = forces[i].y / particle.getMass();
         acceleration.z = forces[i].z / particle.getMass();
+
+        // printf("acceleration: %f\n", acceleration.x);
 
         half_speed.x = particle.getVelocity().x + (0.5f * step_size * acceleration.x);
         half_speed.y = particle.getVelocity().y + (0.5f * step_size * acceleration.y);
@@ -201,23 +237,29 @@ __global__ void apply_integrator_for_particle(Particle3D* particles, float3* for
         new_position.y = particle.getPosition().y + (step_size * particle.getVelocity().y) + (step_size * step_size * acceleration.y * 0.5f);
         new_position.z = particle.getPosition().z + (step_size * particle.getVelocity().z) + (step_size * step_size * acceleration.z * 0.5f);
 
+        new_position_boundary.x = fmod(new_position.x, box_extension);
+        new_position_boundary.y = fmod(new_position.y, box_extension);
+        new_position_boundary.z = fmod(new_position.z, box_extension);
+
+        // printf("new_position: %f, \n", new_position.x);
+
         if(new_position.x < 0)
-            new_position.x = fmod(new_position.x + box_extension, (box_extension));
+            new_position.x = new_position_boundary.x + box_extension;
         
         else if(new_position.x >= (box_extension))
-            new_position.x = fmod(new_position.x - box_extension, -(box_extension));
+            new_position.x =  box_extension - new_position_boundary.x;
         
         if(new_position.y < 0)
-            new_position.y = fmod(new_position.y + box_extension, (box_extension));
+            new_position.y = new_position_boundary.y + box_extension;
         
         else if(new_position.y >= (box_extension))
-            new_position.y = fmod(new_position.y - box_extension, -(box_extension));
+            new_position.y = box_extension - new_position_boundary.y;
         
         if(new_position.z < 0)
-            new_position.z = fmod(new_position.z + box_extension, (box_extension ));
+            new_position.z = new_position_boundary.z + box_extension;
         
         else if(new_position.z >= (box_extension))
-            new_position.z = fmod(new_position.z - box_extension, -(box_extension));        
+            new_position.z = box_extension - new_position_boundary.z;     
 
 
         particle.setPosition(new_position);

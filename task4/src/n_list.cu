@@ -1,11 +1,22 @@
 #include "../include/n_list.cuh"
 #include <iostream>
-#include <cuda/semaphore>
-#include <cuda/atomic>
 #include <cstddef>
 #include <cmath>
 
-__device__ cuda::binary_semaphore<cuda::thread_scope_device> s(1);
+__device__ volatile int sem = 0;
+
+__device__ void acquire_semaphore(volatile int *lock){
+  while (atomicCAS((int *)lock, 0, 1) != 0){
+    // printf("waiting thread %d\n", threadIdx.x);
+    
+  };
+  __threadfence();
+  }
+
+__device__ void release_semaphore(volatile int *lock){
+  atomicExch((int *)lock, 0);
+  __threadfence();
+  }
 
 t_neighbourList *init_neighbourList(float box_extension, float cut_off_radious){
     float num_cell_1d = box_extension / cut_off_radious;
@@ -48,56 +59,51 @@ __device__ void add_particle(t_neighbourList *neighbourList, Particle3D *particl
 
     int cell_index = fmod(x_pos + y_pos * num_cell_1d + z_pos * num_cell_1d * num_cell_1d, num_cell_1d * num_cell_1d * num_cell_1d);
 
-	printf("add particle %d, to cell index: %d \n", particle->getId(), cell_index);
+    // printf("Particle %d is in cell %d\n", particle->getId(), cell_index);
+
+    particle->setNextParticle(nullptr);
 
     current_cell = &neighbourList[cell_index];
-    
-    if(current_cell->particle == nullptr ){
-        s.acquire();
+
+    while(mutex == 1){
+        printf("Waiting\n");
+    }
+    atomicAdd(&mutex, -1);
+
+    if(current_cell->particle == nullptr){
+
+        printf("Particle %d is in cell %d\n", particle->getId(), cell_index);
+        
         current_cell->particle = particle;
 
         atomicAdd(&current_cell->num_particles, 1);
-        s.release();
 
         return;
     }
 
-    current_particle = current_cell->particle;
 
-    s.acquire();
+    current_particle = current_cell->particle;
+    printf("Particle %d is in cell %d\n", particle->getId(), cell_index);
     while(current_particle->getNextParticle() != nullptr ){
         current_particle = current_particle->getNextParticle();
     }
     
+    
     current_particle->setNextParticle(particle);
-    current_cell->num_particles++;
-    s.release();
+    atomicAdd(&current_cell->num_particles, 1);
+
+    atomicAdd(&mutex, -1);
+
+    return;
 
     return;
 }
 
-void clean_particle(t_neighbourList *neighbourList){
-    t_neighbourList *current_cell = neighbourList;
+__global__ void clean_particle(t_neighbourList *neighbourList, float total_num_cells){
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
 
-    while(current_cell != nullptr){
-        // std::cout << "Cleaning cell: " << current_cell->id << std::endl;
-        t_neighbourList *next_cell = current_cell->next;
-        Particle3D *current_particle = current_cell->particle;
-
-        while (current_particle != nullptr)
-        {
-            Particle3D *next_particle = current_particle->getNextParticle();
-            current_particle->setNextParticle(nullptr);
-            current_particle = next_particle;
- 
-        }
-        
-        // printf("Cleaning cell: %d\n", current_cell->id);
-
-        current_cell->particle = nullptr;
-        cudaFree(current_cell);
-        current_cell = next_cell;
+    if (index < total_num_cells){
+        neighbourList[index].particle = nullptr;
+        neighbourList[index].num_particles = 0;
     }
 }
-
-

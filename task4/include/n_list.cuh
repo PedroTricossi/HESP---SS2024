@@ -21,6 +21,6 @@ t_neighbourList *init_neighbourList(float box_extension, float cut_off_radious);
 
 __global__ void add_particles(t_neighbourList *neighbourList, Particle3D *particles, int num_particles, float cut_off_radious, float box_extension);
 
-__device__ void add_particle(t_neighbourList *neighbourList, Particle3D *particle, float cut_off_radious, float box_extension);
+void add_particle(t_neighbourList *neighbourList, Particle3D *particle, float cut_off_radious, float box_extension);
 
-__global__ void clean_particle(t_neighbourList *neighbourList, float num_cell_total);
+void clean_particle(t_neighbourList *neighbourList);

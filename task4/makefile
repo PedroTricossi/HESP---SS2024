@@ -59,7 +59,7 @@ OBJS = $(OBJ_DIR)/main.o $(OBJ_DIR)/particles.o $(OBJ_DIR)/particle_simulation.o
 
 # Link c++ and CUDA compiled object files to target executable:
 $(EXE) : $(OBJS)
-	$(CC) $(CC_FLAGS) $(OBJS) -o $@
+	$(CC) $(CC_FLAGS) $(OBJS) $(CUDA_LIB_DIR) $(CUDA_LINK_LIBS) $(CUDA_INC_DIR) -o $@
 
 # Compile main .cpp file to object files:
 $(OBJ_DIR)/%.o : %.cpp

@@ -72,7 +72,7 @@ __device__ float Particle3D::forceUpdate(const Particle3D& particle_j, const flo
     float sigma_xij = sigma / xij;
     float sigma_xij_6 = powf(sigma_xij, 6);
 
-    float f_scalar = 24 * eps * sigma_xij_6 * ( 2 * powf(sigma_xij, 6) - 1);
+    float f_scalar = 24 * eps * sigma_xij_6 * ((2 * sigma_xij_6) - 1) / (xij * xij);
 
     return f_scalar;
 }
@@ -125,17 +125,13 @@ __global__ void computeForces(Particle3D* particles, float3* forces, int num_par
 
                 float xij = sqrtf(r.x * r.x + r.y * r.y + r.z * r.z);
                 
-                f.x = force_ij * r.x / xij * xij;
-                f.y = force_ij * r.y / xij * xij;
-                f.z = force_ij * r.z / xij * xij;
+                f.x = force_ij * r.x;
+                f.y = force_ij * r.y;
+                f.z = force_ij * r.z;
 
                 atomicAdd(&forces[i].x, -f.x);
                 atomicAdd(&forces[i].y, -f.y);
                 atomicAdd(&forces[i].z, -f.z);
-
-                atomicAdd(&forces[j].x, f.x);
-                atomicAdd(&forces[j].y, f.y);
-                atomicAdd(&forces[j].z, f.z);
             }
         }
     }

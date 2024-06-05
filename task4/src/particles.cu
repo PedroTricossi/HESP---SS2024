@@ -16,6 +16,8 @@ __device__ float Particle3D::forceUpdate(const Particle3D& particle_j, const flo
         dy = particle_j.getPosition().y - position.y;
         dz = particle_j.getPosition().z - position.z;
 
+        // https://en.wikipedia.org/wiki/Periodic_boundary_conditions
+
         r.x = (dx) - int(dx / box_extension) * box_extension;
         r.y = (dy) - int(dy / box_extension) * box_extension;
         r.z = (dz) - int(dz / box_extension) * box_extension;
@@ -25,7 +27,7 @@ __device__ float Particle3D::forceUpdate(const Particle3D& particle_j, const flo
         float sigma_xij = sigma / xij;
         float sigma_xij_6 = powf(sigma_xij, 6);
 
-        float f_scalar = 24 * eps * sigma_xij_6 * ( 2 * powf(sigma_xij, 6) - 1);
+        float f_scalar = 24 * eps * sigma_xij_6 * ((2 * sigma_xij_6) - 1) / (xij * xij);
 
         return f_scalar;
 }
@@ -117,6 +119,7 @@ __global__ void compute_force_between_particles(Particle3D* particles, float3* f
     int particle_nb[27];
 
     if (i < num_particles) {
+        // Neighbour list
         // printf("particle: %d\n", particles[i].getId());
         // particles[i].get_neighbours(nb_list, particle_nb, cut_off_radious, box_extension);
         // for(int k = 0; k < 27; k++){
@@ -135,24 +138,21 @@ __global__ void compute_force_between_particles(Particle3D* particles, float3* f
 
         //                 // printf("force_ij: %f\n", force_ij);
 
-        //                 f.x = force_ij * (r.x / (xij * xij));
-        //                 f.y = force_ij * (r.y / (xij * xij));
-        //                 f.z = force_ij * (r.z / (xij * xij));
+                            // f.x = force_ij * r.x;
+                            // f.y = force_ij * r.y;
+                            // f.z = force_ij * r.z;
 
         //                 atomicAdd(&forces[i].x, -f.x);
         //                 atomicAdd(&forces[i].y, -f.y);
         //                 atomicAdd(&forces[i].z, -f.z);
 
-
-        //                 atomicAdd(&forces[current_particle->getId()].x, f.x);
-        //                 atomicAdd(&forces[current_particle->getId()].y, f.y);
-        //                 atomicAdd(&forces[current_particle->getId()].z, f.z);
         //             }
         //             current_particle = current_particle->getNextParticle();
         //         }
         //     }   
         // }
         
+        // Cut off radious
         for (int j = 0; j < num_particles; ++j) {
             if (i != j) {
                 r.x = particles[j].getPosition().x - particles[i].getPosition().x;
@@ -163,9 +163,9 @@ __global__ void compute_force_between_particles(Particle3D* particles, float3* f
                 if (xij <= cut_off_radious){
                     float force_ij = particles[i].forceUpdate(particles[j], eps, sigma,box_extension);
                     
-                    f.x = force_ij * r.x / xij * xij;
-                    f.y = force_ij * r.y / xij * xij;
-                    f.z = force_ij * r.z / xij * xij;
+                    f.x = force_ij * r.x;
+                    f.y = force_ij * r.y;
+                    f.z = force_ij * r.z;
 
                     atomicAdd(&forces[i].x, -f.x);
                     atomicAdd(&forces[i].y, -f.y);
@@ -173,26 +173,7 @@ __global__ void compute_force_between_particles(Particle3D* particles, float3* f
                 }
             }
         }
-    }
-
-                
-        
-        //     float force_ij = particles[i].forceUpdate(particles[j], eps, sigma, box_extension);
-
-        //     f.x = force_ij * r.x / xij * xij;
-        //     f.y = force_ij * r.y / xij * xij;
-        //     f.z = force_ij * r.z / xij * xij;
-
-        //     atomicAdd(&forces[i].x, -f.x);
-        //     atomicAdd(&forces[i].y, -f.y);
-        //     atomicAdd(&forces[i].z, -f.z);
-
-        //     atomicAdd(&forces[j].x, f.x);
-        //     atomicAdd(&forces[j].y, f.y);
-        //     atomicAdd(&forces[j].z, f.z);
-        // }
-
-            
+    } 
         
     }
 // }

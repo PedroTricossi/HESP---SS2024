@@ -170,10 +170,6 @@ __global__ void compute_force_between_particles(Particle3D* particles, float3* f
                     atomicAdd(&forces[i].x, -f.x);
                     atomicAdd(&forces[i].y, -f.y);
                     atomicAdd(&forces[i].z, -f.z);
-
-                    atomicAdd(&forces[j].x, f.x);
-                    atomicAdd(&forces[j].y, f.y);
-                    atomicAdd(&forces[j].z, f.z);
                 }
             }
         }

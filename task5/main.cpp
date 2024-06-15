@@ -5,8 +5,8 @@
 
 int main(int argc, char* argv[]) 
 {
-    if (argc != 10) {
-        std::cerr << "Usage: " << argv[0] << " time_steps step_size num_particles eps sigma box_extension cut_off_radious k_n gamma" << std::endl;
+    if (argc != 11) {
+        std::cerr << "Usage: " << argv[0] << " time_steps step_size num_particles eps sigma box_extension cut_off_radious k_n gamma gravity" << std::endl;
         return 1;
     }
 
@@ -19,6 +19,7 @@ int main(int argc, char* argv[])
     float cut_off_radious = std::atof(argv[7]);
     float k_n = std::atof(argv[8]);
     float gamma = std::atof(argv[9]);
+    float gamma = std::atof(argv[10]);
 
     if (fmod(box_extension, cut_off_radious) != 0) {
         std::cerr << "The extension of the boundary MUST be a multiple of the cut-off Radius" << std::endl;

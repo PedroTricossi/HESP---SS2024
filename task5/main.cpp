@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
 
     auto start = std::chrono::steady_clock::now();
 
-    start_particle_simulation(time_steps, step_size, num_particles, eps, sigma, box_extension, cut_off_radious, k_n, gamma);
+    start_particle_simulation(int time_steps, float step_size, int num_particles, float eps, float sigma, float k_n, float gamma, float gravity,float box_extension, float cut_off_radious);
 
     auto end = std::chrono::steady_clock::now();
 

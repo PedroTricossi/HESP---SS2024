@@ -14,12 +14,12 @@ private:
     float3 position;  // Position of the particle
     float3 velocity;  // Velocity of the particle
     float mass;       // Mass of the particle
-    float radius;     //Radius of the particle
+    float m_radius;     //Radius of the particle
 
 public:
     // Constructors
     Particle3D()
-            : mass(0.0f)
+            : mass(0.0f), m_radius(0.000005f) //Took 5 micrometers as radius
     {
         position.x = 0.0f;
         position.y = 0.0f;
@@ -32,8 +32,8 @@ public:
         next_particle = nullptr ;
     }
 
-    Particle3D(float3 pos, float3 vel, float m, Particle3D* np, int id)
-            : position(pos), velocity(vel), mass(m), next_particle(np), id(id)
+    Particle3D(float3 pos, float3 vel, float m,float radius Particle3D* np, int id)
+            : position(pos), velocity(vel), mass(m), m_radius(radius), next_particle(np), id(id)
     {
     }
 

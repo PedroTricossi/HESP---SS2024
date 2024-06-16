@@ -45,7 +45,7 @@ public:
     __host__ __device__ float3 getVelocity() const { return velocity; }
     __host__ __device__ float getMass() const { return mass; }
     __host__ __device__ Particle3D* getNextParticle() const { return next_particle; }
-    __host__ __device__ float getRadius() const { return radius; }
+    __host__ __device__ float getRadius() const { return m_radius; }
 
     // Setters
     __host__ __device__ void setId(int i) { id = i; }
@@ -53,7 +53,7 @@ public:
     __host__ __device__ void setVelocity(float3 vel) { velocity = vel; }
     __host__ __device__ void setMass(float m) { mass = m; }
     __host__ __device__ void setNextParticle(Particle3D* np) { next_particle = np; }
-    __host__ __device__ void setRadius(float r) { radius = r; }
+    __host__ __device__ void setRadius(float r) { m_radius = r; }
 
 
     // Function to calculate the force update

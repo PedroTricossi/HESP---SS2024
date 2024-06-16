@@ -1,8 +1,8 @@
-#ifndef particles.cuh
-#define  particles.cuh
-
+// #ifndef particles.cuh
+// #define  particles.cuh
+#pragma once
 #include <cstddef>
-#include "n_list.cuh"
+// #include "n_list.cuh"
 typedef struct t_neighbourList;
 
 
@@ -59,14 +59,15 @@ public:
     // Function to calculate the force update
     __host__ __device__ float forceUpdate(const Particle3D& particle_j, const float eps, const float sigma, float box_extension);
     __host__ __device__ void get_neighbours(t_neighbourList *neighbourList, int *nb_list, float cut_off_radious, float box_extension);
-   __host__ __device__ float3 calculate_spring_dashpot_force(const Particle3D& particle_i, const Particle3D& particle_j, float k_n, float gamma, float box_extension);
+    __host__ __device__ float3 calculate_spring_dashpot_force(const Particle3D& particle_j, float k_n, float gamma, float box_extension);
     
 };
 
 __host__ __device__ int calculate_matrix_coordenates(int x, int y, int z, float num_cell_1d, float box_extension);
 
-__global__ void compute_force_between_particles(Particle3D* particles, float3* forces, int num_particles, float eps, float sigma, float box_extension, float cut_off_radious, t_neighbourList* nb_list);
+__global__ void compute_force_between_particles(Particle3D* particles, float3* forces, int num_particles, float eps, float sigma, float k_n, float gamma, float gravity, 
+float box_extension, float cut_off_radious, t_neighbourList* nb_list);
 
 __global__ void apply_integrator_for_particle(Particle3D* particles, float3* forces, int num_particles, float step_size, float box_extension);
 
-#endif 
+// #endif 

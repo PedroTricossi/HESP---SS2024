@@ -2,8 +2,8 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 #include <iostream>
-#include "include/particles.cuh"
-#include "include/n_list.cuh"
+#include "particles.cuh"
+// #include "include/n_list.cuh"
 
 __device__ float Particle3D::forceUpdate(const Particle3D& particle_j, const float eps, const float sigma, float box_extension)
 {
@@ -46,12 +46,19 @@ __device__ float3 Particle3D::calculate_spring_dashpot_force(const Particle3D& p
     r.z -= round(r.z / box_extension) * box_extension;
 
     float distance = sqrtf(r.x * r.x + r.y * r.y + r.z * r.z);
-    float overlap = particle.getRadius() + particle_j.getRadius() - distance;
+
+    // printf("distance: %f\n", distance);
+
+    float overlap = distance - (m_radius + particle_j.getRadius());
+
+    printf("overlap: %f\n", overlap);
 
     // If there is no overlap, return zero force
-    if (overlap <= 0.0f) {
+    if (overlap > 0.001f) {
         return make_float3(0.0f, 0.0f, 0.0f);
     }
+
+    printf("Overlap\n");
 
     // Unit normal vector
     float3 n;
@@ -59,17 +66,24 @@ __device__ float3 Particle3D::calculate_spring_dashpot_force(const Particle3D& p
     n.y = r.y / distance;
     n.z = r.z / distance;
 
+    // printf("n: %f\n", n.y);
+
     // Elastic force
     float3 f_elastic;
     f_elastic.x = k_n * overlap * n.x;
     f_elastic.y = k_n * overlap * n.y;
     f_elastic.z = k_n * overlap * n.z;
 
+    // printf("k_n: %f\n", k_n);
+    // printf("f_elastic: %f\n", f_elastic.y);
+
     // Relative velocity
     float3 v_rel;
     v_rel.x = particle_j.getVelocity().x - velocity.x;
     v_rel.y = particle_j.getVelocity().y - velocity.y;
     v_rel.z = particle_j.getVelocity().z - velocity.z;
+
+    // printf("v_rel: %f\n", v_rel.y);
 
     // Damping force
     float3 f_damping;
@@ -78,11 +92,15 @@ __device__ float3 Particle3D::calculate_spring_dashpot_force(const Particle3D& p
     f_damping.y = gamma * dot_product * n.y;
     f_damping.z = gamma * dot_product * n.z;
 
+    // printf("f_damping: %f\n", f_damping.y);
+
     // Total force
     float3 f_total;
     f_total.x = f_elastic.x + f_damping.x;
     f_total.y = f_elastic.y + f_damping.y;
     f_total.z = f_elastic.z + f_damping.z;
+
+    // printf("f_total: %f\n", f_total.y);
 
     return f_total;
 }
@@ -183,40 +201,14 @@ float box_extension, float cut_off_radious, t_neighbourList* nb_list)
         gravitational_force.z = 0.0f;
 
         // Apply gravitational force to particle i
-        atomicAdd(&forces[i].x, gravitational_force.x);
-        atomicAdd(&forces[i].y, gravitational_force.y);
-        atomicAdd(&forces[i].z, gravitational_force.z);
 
-        // Neighbour list approach (commented out for clarity)
-        particles[i].get_neighbours(nb_list, particle_nb, cut_off_radious, box_extension);
-        for (int k = 0; k < 27; k++) {
-            int cell_index = particle_nb[k];
-            if (nb_list[cell_index].num_particles != 0) {
-                Particle3D* current_particle = nb_list[cell_index].particle;
-                while (current_particle != nullptr) {
-                    if (current_particle->getId() != particles[i].getId()) {
-                        r.x = current_particle->getPosition().x - particles[i].getPosition().x;
-                        r.y = current_particle->getPosition().y - particles[i].getPosition().y;
-                        r.z = current_particle->getPosition().z - particles[i].getPosition().z;
+        forces[i].x = forces[i].x + gravitational_force.x;
+        forces[i].y = forces[i].y + gravitational_force.y;
+        forces[i].z = forces[i].z + gravitational_force.z;
 
-                        float xij = sqrtf(r.x * r.x + r.y * r.y + r.z * r.z);
+        
 
-                        float force_ij = particles[i].calculate_spring_dashpot_force(*current_particle, k_n, gamma, box_extension);
-
-                        f.x = force_ij * r.x;
-                        f.y = force_ij * r.y;
-                        f.z = force_ij * r.z;
-
-                        atomicAdd(&forces[i].x, -f.x);
-                        atomicAdd(&forces[i].y, -f.y);
-                        atomicAdd(&forces[i].z, -f.z);
-                    }
-                    current_particle = current_particle->getNextParticle();
-                }
-            }
-        }
-
-        // Direct cutoff radius approach
+        // Loop over all particles to calculate the force between particle i and all other particles
         for (int j = 0; j < num_particles; ++j) {
             if (i != j) {
                 r.x = particles[j].getPosition().x - particles[i].getPosition().x;
@@ -224,19 +216,28 @@ float box_extension, float cut_off_radious, t_neighbourList* nb_list)
                 r.z = particles[j].getPosition().z - particles[i].getPosition().z;
 
                 float xij = sqrtf(r.x * r.x + r.y * r.y + r.z * r.z);
-                if (xij <= cut_off_radious) {
-                    float force_ij = particles[i].forceUpdate(particles[j], eps, sigma, box_extension);
+                if (xij <= cut_off_radious){
+                    float3 force_ij = particles[i].calculate_spring_dashpot_force(particles[j], k_n, gamma, box_extension);
 
-                    f.x = force_ij * r.x;
-                    f.y = force_ij * r.y;
-                    f.z = force_ij * r.z;
+                    // printf("force_ij: %f\n", force_ij.y);
+                    
+                    // f.x = force_ij.x * r.x;
+                    // f.y = force_ij.y * r.y;
+                    // f.z = force_ij.z * r.z;
 
-                    atomicAdd(&forces[i].x, -f.x);
-                    atomicAdd(&forces[i].y, -f.y);
-                    atomicAdd(&forces[i].z, -f.z);
+                    // printf("f: %f\n", f.y);
+
+                    // printf("gravitational_force: %f\n", forces[i].y);
+
+                    forces[i].x = forces[i].x + force_ij.x;
+                    forces[i].y = forces[i].y + force_ij.y;
+                    forces[i].z = forces[i].z + force_ij.z;
+
+                    // printf("forces: %f\n", forces[i].y);
                 }
             }
         }
+
     }
 }
 
@@ -268,26 +269,28 @@ __global__ void apply_integrator_for_particle(Particle3D* particles, float3* for
         new_position_boundary.y = fmod(new_position.y, box_extension);
         new_position_boundary.z = fmod(new_position.z, box_extension);
 
-        // printf("new_position: %f, \n", new_position.x);
+        
 
         if(new_position.x < 0)
-            new_position.x = new_position_boundary.x + box_extension;
+            new_position.x = box_extension - new_position_boundary.x;
         
-        else if(new_position.x >= (box_extension))
-            new_position.x =  box_extension - new_position_boundary.x;
+        else if(new_position.x >= (box_extension)){
+            new_position.x = new_position_boundary.x;
+        }
         
         if(new_position.y < 0)
             new_position.y = new_position_boundary.y + box_extension;
         
         else if(new_position.y >= (box_extension))
-            new_position.y = box_extension - new_position_boundary.y;
+            new_position.y = new_position_boundary.y;
         
         if(new_position.z < 0)
             new_position.z = new_position_boundary.z + box_extension;
         
         else if(new_position.z >= (box_extension))
-            new_position.z = box_extension - new_position_boundary.z;     
-
+            new_position.z = new_position_boundary.z;     
+        
+        // printf("new_position: %f, \n", new_position.x);
 
         particle.setPosition(new_position);
 

@@ -32,7 +32,7 @@ public:
         next_particle = nullptr ;
     }
 
-    Particle3D(float3 pos, float3 vel, float m,float radius Particle3D* np, int id)
+    Particle3D(float3 pos, float3 vel, float m,float radius, Particle3D* np, int id)
             : position(pos), velocity(vel), mass(m), m_radius(radius), next_particle(np), id(id)
     {
     }

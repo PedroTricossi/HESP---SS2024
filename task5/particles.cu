@@ -241,6 +241,7 @@ float box_extension, float cut_off_radious, t_neighbourList* nb_list)
     }
 }
 
+/*
 __global__ void apply_integrator_for_particle(Particle3D* particles, float3* forces, int num_particles, float step_size, float box_extension) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < num_particles) {
@@ -302,4 +303,98 @@ __global__ void apply_integrator_for_particle(Particle3D* particles, float3* for
                 half_speed.z + (0.5f * step_size * acceleration.z),
         });
     }
+*/
+
+//Explicit Euler
+__global__ void apply_integrator_for_particle_euler(Particle3D* particles, float3* forces, int num_particles, float step_size, float box_extension) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < num_particles) {
+        Particle3D& particle = particles[i];
+        float3 acceleration;
+        float3 new_velocity;
+        float3 new_position;
+
+        acceleration.x = forces[i].x / particle.getMass();
+        acceleration.y = forces[i].y / particle.getMass();
+        acceleration.z = forces[i].z / particle.getMass();
+
+        new_velocity.x = particle.getVelocity().x + step_size * acceleration.x;
+        new_velocity.y = particle.getVelocity().y + step_size * acceleration.y;
+        new_velocity.z = particle.getVelocity().z + step_size * acceleration.z;
+
+        new_position.x = particle.getPosition().x + step_size * new_velocity.x;
+        new_position.y = particle.getPosition().y + step_size * new_velocity.y;
+        new_position.z = particle.getPosition().z + step_size * new_velocity.z;
+
+        new_position.x = fmodf(new_position.x + box_extension, box_extension);
+        new_position.y = fmodf(new_position.y + box_extension, box_extension);
+        new_position.z = fmodf(new_position.z + box_extension, box_extension);
+
+        particle.setPosition(new_position);
+        particle.setVelocity(new_velocity);
+    }
+}
+
+/*Runge Kutta
+__global__ void apply_integrator_for_particle_rk4(Particle3D* particles, float3* forces, int num_particles, float step_size, float box_extension) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < num_particles) {
+        Particle3D& particle = particles[i];
+        float3 k1_pos, k1_vel;
+        float3 k2_pos, k2_vel;
+        float3 k3_pos, k3_vel;
+        float3 k4_pos, k4_vel;
+        float3 pos, vel, acc;
+
+        pos = particle.getPosition();
+        vel = particle.getVelocity();
+        acc.x = forces[i].x / particle.getMass();
+        acc.y = forces[i].y / particle.getMass();
+        acc.z = forces[i].z / particle.getMass();
+
+        // k1
+        k1_vel = acc;
+        k1_pos = vel;
+
+        // k2
+        k2_vel.x = forces[i].x / particle.getMass();
+        k2_vel.y = forces[i].y / particle.getMass();
+        k2_vel.z = forces[i].z / particle.getMass();
+        k2_pos.x = vel.x + 0.5f * step_size * k1_vel.x;
+        k2_pos.y = vel.y + 0.5f * step_size * k1_vel.y;
+        k2_pos.z = vel.z + 0.5f * step_size * k1_vel.z;
+
+        // k3
+        k3_vel.x = forces[i].x / particle.getMass();
+        k3_vel.y = forces[i].y / particle.getMass();
+        k3_vel.z = forces[i].z / particle.getMass();
+        k3_pos.x = vel.x + 0.5f * step_size * k2_vel.x;
+        k3_pos.y = vel.y + 0.5f * step_size * k2_vel.y;
+        k3_pos.z = vel.z + 0.5f * step_size * k2_vel.z;
+
+        // k4
+        k4_vel.x = forces[i].x / particle.getMass();
+        k4_vel.y = forces[i].y / particle.getMass();
+        k4_vel.z = forces[i].z / particle.getMass();
+        k4_pos.x = vel.x + step_size * k3_vel.x;
+        k4_pos.y = vel.y + step_size * k3_vel.y;
+        k4_pos.z = vel.z + step_size * k3_vel.z;
+
+        // Update position and velocity
+        pos.x = fmodf(pos.x + (step_size / 6.0f) * (k1_pos.x + 2.0f * k2_pos.x + 2.0f * k3_pos.x + k4_pos.x) + box_extension, box_extension);
+        pos.y = fmodf(pos.y + (step_size / 6.0f) * (k1_pos.y + 2.0f * k2_pos.y + 2.0f * k3_pos.y + k4_pos.y) + box_extension, box_extension);
+        pos.z = fmodf(pos.z + (step_size / 6.0f) * (k1_pos.z + 2.0f * k2_pos.z + 2.0f * k3_pos.z + k4_pos.z) + box_extension, box_extension);
+
+        vel.x += (step_size / 6.0f) * (k1_vel.x + 2.0f * k2_vel.x + 2.0f * k3_vel.x + k4_vel.x);
+        vel.y += (step_size / 6.0f) * (k1_vel.y + 2.0f * k2_vel.y + 2.0f * k3_vel.y + k4_vel.y);
+        vel.z += (step_size / 6.0f) * (k1_vel.z + 2.0f * k2_vel.z + 2.0f * k3_vel.z + k4_vel.z);
+
+        particle.setPosition(pos);
+        particle.setVelocity(vel);
+    }
+}
+
+
+*/
+
 }

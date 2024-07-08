@@ -123,7 +123,7 @@ void start_particle_simulation(int time_steps, float step_size, int num_particle
         cudaDeviceSynchronize();
 
         // Write the VTK file
-        writeVTKFile(step + 1, num_particles, particles);
+//        writeVTKFile(step + 1, num_particles, particles);
 
     }
 

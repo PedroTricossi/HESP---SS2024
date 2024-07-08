@@ -1,0 +1,48 @@
+### Starting TaskPrologue of job 1856942 on a0602 at Mon Jul  8 13:07:46 CEST 2024
+Running on cores 96-99,116-127 with governor ondemand
+Mon Jul  8 13:07:46 2024       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 555.42.06              Driver Version: 555.42.06      CUDA Version: 12.5     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA A100-SXM4-40GB          On  |   00000000:CC:00.0 Off |                    0 |
+| N/A   35C    P0             54W /  400W |       1MiB /  40960MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+### Finished TaskPrologue
+
+BOX: 300
+32768, Time: 1.42495 seconds
+=== JOB_STATISTICS ===
+=== current date     : Mon Jul  8 13:07:48 CEST 2024
+= Job-ID             : 1856942 on alex
+= Job-Name           : particle_simulation
+= Job-Command        : /home/hpc/hesp/hesp123h/HESP---SS2024/task6/batch.sh
+= Initial workdir    : /home/hpc/hesp/hesp123h/HESP---SS2024/task6
+= Queue/Partition    : a100
+= Slurm account      : hesp with QOS=normal
+= Requested resources:  for 06:00:00
+= Elapsed runtime    : 00:00:04
+= Total RAM usage    : 0.0 GiB of assigned  GiB (%)
+= Node list          : a0602
+= Subm/Elig/Start/End: 2024-07-08T13:07:43 / 2024-07-08T13:07:43 / 2024-07-08T13:07:44 / 2024-07-08T13:07:48
+======================
+=== Quota infos ======
+    Path              Used     SoftQ    HardQ    Gracetime  Filec    FileQ    FiHaQ    FileGrace    
+    /home/woody          0.0K  1000.0G  1500.0G        N/A       1    5,000K   7,500K        N/A    
+    /home/hpc          269.9M   104.9G   209.7G        N/A     314      500K   1,000K        N/A    
+======================
+=== GPU utilization ==
+gpu_name, gpu_bus_id, pid, gpu_utilization [%], mem_utilization [%], max_memory_usage [MiB], time [ms]
+NVIDIA A100-SXM4-40GB, 00000000:CC:00.0, 2245237, 32 %, 0 %, 414 MiB, 1535 ms

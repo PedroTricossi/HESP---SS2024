@@ -51,14 +51,14 @@ __device__ float3 Particle3D::calculate_spring_dashpot_force(const Particle3D& p
 
     float overlap = distance - (m_radius + particle_j.getRadius());
 
-    printf("overlap: %f\n", overlap);
+//    printf("overlap: %f\n", overlap);
 
     // If there is no overlap, return zero force
     if (overlap > 0.001f) {
         return make_float3(0.0f, 0.0f, 0.0f);
     }
 
-    printf("Overlap\n");
+  //  printf("Overlap\n");
 
     // Unit normal vector
     float3 n;

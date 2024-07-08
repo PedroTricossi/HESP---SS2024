@@ -69,5 +69,7 @@ __global__ void compute_force_between_particles(Particle3D* particles, float3* f
 float box_extension, float cut_off_radious, t_neighbourList* nb_list);
 
 __global__ void apply_integrator_for_particle(Particle3D* particles, float3* forces, int num_particles, float step_size, float box_extension);
+__global__ void apply_integrator_for_particle_euler(Particle3D* particles, float3* forces, int num_particles, float step_size, float box_extension);
+__global__ void apply_integrator_for_particle_rk4(Particle3D* particles, float3* forces, int num_particles, float step_size, float box_extension);
 
 // #endif 

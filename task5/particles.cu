@@ -335,7 +335,7 @@ __global__ void apply_integrator_for_particle_euler(Particle3D* particles, float
     }
 }
 
-/*Runge Kutta
+// Runge Kutta
 __global__ void apply_integrator_for_particle_rk4(Particle3D* particles, float3* forces, int num_particles, float step_size, float box_extension) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < num_particles) {
@@ -394,7 +394,4 @@ __global__ void apply_integrator_for_particle_rk4(Particle3D* particles, float3*
     }
 }
 
-
-*/
-
-}
+// }

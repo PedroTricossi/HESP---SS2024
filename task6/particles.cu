@@ -188,12 +188,10 @@ __global__ void compute_force_between_particles(Particle3D* particles, float3* f
 float box_extension, float cut_off_radious, t_neighbourList* nb_list) 
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-
-    float3 f;
+    
     float3 r;
-    int particle_nb[27];
 
-    if (i < num_particles) {
+    if (i < (num_particles / 2)) {
         // Gravitational force
         float3 gravitational_force;
         gravitational_force.x = 0.0f;
@@ -201,15 +199,12 @@ float box_extension, float cut_off_radious, t_neighbourList* nb_list)
         gravitational_force.z = 0.0f;
 
         // Apply gravitational force to particle i
-
         forces[i].x = forces[i].x + gravitational_force.x;
         forces[i].y = forces[i].y + gravitational_force.y;
         forces[i].z = forces[i].z + gravitational_force.z;
 
-        
-
         // Loop over all particles to calculate the force between particle i and all other particles
-        for (int j = 0; j < num_particles; ++j) {
+        for (int j = 0; j < (num_particles / 2); ++j) {
             if (i != j) {
                 r.x = particles[j].getPosition().x - particles[i].getPosition().x;
                 r.y = particles[j].getPosition().y - particles[i].getPosition().y;
@@ -219,25 +214,12 @@ float box_extension, float cut_off_radious, t_neighbourList* nb_list)
                 if (xij <= cut_off_radious){
                     float3 force_ij = particles[i].calculate_spring_dashpot_force(particles[j], k_n, gamma, box_extension);
 
-                    // printf("force_ij: %f\n", force_ij.y);
-                    
-                    // f.x = force_ij.x * r.x;
-                    // f.y = force_ij.y * r.y;
-                    // f.z = force_ij.z * r.z;
-
-                    // printf("f: %f\n", f.y);
-
-                    // printf("gravitational_force: %f\n", forces[i].y);
-
                     forces[i].x = forces[i].x + force_ij.x;
                     forces[i].y = forces[i].y + force_ij.y;
                     forces[i].z = forces[i].z + force_ij.z;
-
-                    // printf("forces: %f\n", forces[i].y);
                 }
             }
         }
-
     }
 }
 

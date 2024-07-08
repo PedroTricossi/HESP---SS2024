@@ -49,84 +49,104 @@ void writeVTKFile(int step, int num_particles, Particle3D* particles) {
 
 void start_particle_simulation(int time_steps, float step_size, int num_particles, float eps, float sigma, float k_n, float gamma, float gravity,float box_extension, float cut_off_radious)
 {
-    float3 *forces;
+    float3 *ha_forces;
+    float3 *hb_forces;
+    float3 *da_forces;
+    float3 *db_forces;
     Particle3D* particles;
-
-    int numberOfThreads = 256;
-    int numberOfBlocks = 32 * 46;
     int deviceId;
+    cudaDeviceProp prop;
 
     float num_cell_1d = box_extension / cut_off_radious;
     float num_cell_total = powf(num_cell_1d, 3);
 
     cudaGetDevice(&deviceId);
 
-    cudaMallocManaged(&particles, num_particles * sizeof(Particle3D));
-    cudaMemPrefetchAsync(particles,  num_particles * sizeof(Particle3D), deviceId);
+    cudaGetDeviceProperties(&prop, deviceId);
 
-    cudaMallocManaged(&forces, num_particles * sizeof(float3));
-    cudaMemPrefetchAsync(forces, num_particles * sizeof(float3), deviceId);
+    int numberOfThreads = 256;
+    int numberOfBlocks = 32 * prop.multiProcessorCount;
 
-    //  t_neighbourList *nb_list = init_neighbourList(box_extension, cut_off_radious);
+
+    // cudaMallocManaged(&particles, num_particles * sizeof(Particle3D));
+    // cudaMemPrefetchAsync(particles,  num_particles * sizeof(Particle3D), deviceId);
+
+    // cudaMallocManaged(&forces, num_particles * sizeof(float3));
+    // cudaMemPrefetchAsync(forces, num_particles * sizeof(float3), deviceId);
+
+    Particle3D *h_a = NULL;
+	Particle3D *h_b = NULL;
+
+	cudaMallocHost((void**)&h_a, sizeof(Particle3D) * (num_particles / 2));
+	cudaMallocHost((void**)&h_b, sizeof(Particle3D) * (num_particles / 2));
+    cudaMallocHost((void**)&ha_forces, sizeof(float3) * (num_particles / 2));
+    cudaMallocHost((void**)&hb_forces, sizeof(float3) * (num_particles / 2));
+
+    Particle3D* d_a = NULL; 
+	Particle3D* d_b = NULL; 
+
+	cudaMalloc((void**)&d_a, sizeof(Particle3D) * (num_particles / 2));
+	cudaMalloc((void**)&d_b, sizeof(Particle3D) * (num_particles / 2));
+    cudaMalloc((void**)&da_forces, sizeof(float3) * (num_particles / 2));
+    cudaMalloc((void**)&db_forces, sizeof(float3) * (num_particles / 2));
+
+    cudaStream_t stream[2];
+    for (int i = 0; i < 2; i++) {
+        cudaStreamCreate(&stream[i]);
+    }
 
     t_neighbourList *nb_list = nullptr;
 
-    int pos = 5;    
+    int pos = 0;    
     
     for (int i = 0; i < num_particles; ++i) {
         float x = fmod(pos, box_extension) ;
         float y = (pos >= box_extension) ? fmod(floor(pos * 2 / box_extension), box_extension): 0;
         float z = (pos * 4 >= box_extension * box_extension) ? fmod(floor((pos * 4) / (box_extension * box_extension) ), box_extension) : 0;
         
-
-        particles[i] = Particle3D(float3{ x, y, z }, float3{ 0.0f, 0.0f, 0.0f }, 1.0f, 1.0f, nullptr, i);
-
-        forces[i] = float3{ 0.0f, 0.0f, 0.0f };
+        if(i < (num_particles / 2))
+            h_a[i] = Particle3D(float3{ x, y, z }, float3{ 0.0f, 0.0f, 0.0f }, 1.0f, 1.0f, nullptr, i);
+        else
+            h_b[i - (num_particles / 2)] = Particle3D(float3{ x, y, z }, float3{ 0.0f, 0.0f, 0.0f }, 1.0f, 1.0f, nullptr, i);
+        
+        if (i < num_particles / 2)
+            ha_forces[i] = float3{ 0.0f, 0.0f, 0.0f };
+        else
+            hb_forces[i - (num_particles / 2)] = float3{ 0.0f, 0.0f, 0.0f };
 
         pos += 2;
     }
-    // particles[0] = Particle3D(float3{ 1, 7, 0 }, float3{ 2.0f, -0.5f, 0.0f }, 1.0f, 1.0f, nullptr, 0);
-    // particles[1] = Particle3D(float3{ 2, 5, 0 }, float3{ 0.0f, 0.0f, 0.0f }, 1.0f, 1.0f, nullptr, 1);
-    // particles[2] = Particle3D(float3{ 3, 3, 0 }, float3{ 0.0f, 0.0f, 0.0f }, 1.0f, 1.0f, nullptr, 2);
-    // particles[3] = Particle3D(float3{ 4, 1, 0 }, float3{ 0.0f, 0.0f, 0.0f }, 1.0f, 1.0f, nullptr, 3);
-    // particles[4] = Particle3D(float3{ 7, 3, 0 }, float3{ 0.0f, 0.0f, 0.0f }, 1.0f, 1.0f, nullptr, 4);
-
-
-    // add_particles<<< numberOfBlocks, numberOfThreads >>>(nb_list, particles, num_particles, cut_off_radious, box_extension);
-    // cudaDeviceSynchronize();
-
-    // for(int i = 0; i < num_particles; i++){
-    //     printf("cell %d has %d particles\n",i, nb_list[i].num_particles);
-    // }
-    
 
     std::cout << num_particles << ", ";
+
+    cudaMemcpyAsync(d_a, h_a, sizeof(Particle3D)* (num_particles / 2), cudaMemcpyHostToDevice, stream[0]);
+	cudaMemcpyAsync(d_b, h_b, sizeof(Particle3D)* (num_particles / 2), cudaMemcpyHostToDevice, stream[1]);
+
+    cudaMemcpyAsync(da_forces, ha_forces, sizeof(float3)* (num_particles / 2), cudaMemcpyHostToDevice, stream[0]);
+	cudaMemcpyAsync(db_forces, hb_forces, sizeof(float3)* (num_particles / 2), cudaMemcpyHostToDevice, stream[1]);
+
     
 
-    writeVTKFile(0, num_particles, particles);
-    int step = 0;
+    // writeVTKFile(0, num_particles, particles);
 
     for (int step = 0; step < time_steps; ++step) {
-        cudaMemset(forces, 0, num_particles * sizeof(float3));
-
-        // std::cout << "particle: " << particles[1].getPosition().x << " " << particles[1].getPosition().y << " " << particles[1].getPosition().z << std::endl;
-        // printf("step: %d\n", step);
-        
+        cudaMemset(da_forces, 0, sizeof(float3)* (num_particles / 2));
+        cudaMemset(db_forces, 0, sizeof(float3)* (num_particles / 2));
 
         // Compute forces using CUDA
-        compute_force_between_particles <<< numberOfBlocks, numberOfThreads >>> (particles, forces, num_particles, eps, sigma, k_n, gamma, gravity, box_extension, cut_off_radious, nb_list);
-        
-        cudaDeviceSynchronize();
 
+        compute_force_between_particles <<< numberOfBlocks, numberOfThreads, 0, stream[0]>>> (d_a, da_forces, num_particles, eps, sigma, k_n, gamma, gravity, box_extension, cut_off_radious, nb_list);
+        compute_force_between_particles <<< numberOfBlocks, numberOfThreads, 0, stream[1]>>> (d_b, db_forces, num_particles, eps, sigma, k_n, gamma, gravity, box_extension, cut_off_radious, nb_list);
+                
         // Integrate particles using CUDA
-        apply_integrator_for_particle_euler <<< numberOfBlocks, numberOfThreads >>> (particles, forces, num_particles, step_size, box_extension);
+        apply_integrator_for_particle_euler <<< numberOfBlocks, numberOfThreads, 0, stream[0]>>> (d_a, da_forces, num_particles, step_size, box_extension);
+        apply_integrator_for_particle_euler <<< numberOfBlocks, numberOfThreads, 0, stream[1]>>> (d_b, db_forces, num_particles, step_size, box_extension);
         cudaDeviceSynchronize();
 
         // Write the VTK file
-//        writeVTKFile(step + 1, num_particles, particles);
-
+        // writeVTKFile(step + 1, num_particles, particles);
     }
 
-    cudaFree(particles);
-    cudaFree(forces);
+    // cudaFree(particles);
+    // cudaFree(forces);
 }

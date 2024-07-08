@@ -3,7 +3,7 @@
 #pragma once
 #include <cstddef>
 // #include "n_list.cuh"
-typedef struct t_neighbourList;
+struct t_neighbourList;
 
 
 class Particle3D

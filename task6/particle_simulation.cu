@@ -168,7 +168,7 @@ void start_particle_simulation(int time_steps, float step_size, int num_particle
     cudaGetDeviceProperties(&prop, deviceId);
 
     int numberOfThreads = 256;
-    int numberOfBlocks = (num_particles / 2 + numberOfThreads - 1) / numberOfThreads;
+    int numberOfBlocks = 32 * prop.multiProcessorCount;
 
     Particle3D *h_a = NULL;
     Particle3D *h_b = NULL;

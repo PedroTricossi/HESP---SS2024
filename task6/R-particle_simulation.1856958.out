@@ -1,124 +1,0 @@
-### Starting TaskPrologue of job 1856958 on a0531 at Mon Jul  8 13:27:06 CEST 2024
-Running on cores 112-127 with governor ondemand
-Mon Jul  8 13:27:06 2024       
-+-----------------------------------------------------------------------------------------+
-| NVIDIA-SMI 555.42.06              Driver Version: 555.42.06      CUDA Version: 12.5     |
-|-----------------------------------------+------------------------+----------------------+
-| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
-| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
-|                                         |                        |               MIG M. |
-|=========================================+========================+======================|
-|   0  NVIDIA A100-SXM4-80GB          On  |   00000000:D1:00.0 Off |                    0 |
-| N/A   40C    P0             64W /  400W |       1MiB /  81920MiB |      0%      Default |
-|                                         |                        |             Disabled |
-+-----------------------------------------+------------------------+----------------------+
-                                                                                         
-+-----------------------------------------------------------------------------------------+
-| Processes:                                                                              |
-|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
-|        ID   ID                                                               Usage      |
-|=========================================================================================|
-|  No running processes found                                                             |
-+-----------------------------------------------------------------------------------------+
-### Finished TaskPrologue
-
-BOX: 300
-32768, Time: 1.38742 seconds
-Generating '/tmp/1856958.alex/nsys-report-c4fc.qdstrm'
-[1/8] [0%                          ] particle-report.nsys-rep[1/8] [0%                          ] particle-report.nsys-rep[1/8] [14%                         ] particle-report.nsys-rep[1/8] [=15%                        ] particle-report.nsys-rep[1/8] [=======38%                  ] particle-report.nsys-rep[1/8] [==============61%           ] particle-report.nsys-rep[1/8] [==============62%           ] particle-report.nsys-rep[1/8] [==============63%           ] particle-report.nsys-rep[1/8] [==============64%           ] particle-report.nsys-rep[1/8] [==================75%       ] particle-report.nsys-rep[1/8] [=====================88%    ] particle-report.nsys-rep[1/8] [=======================96%  ] particle-report.nsys-rep[1/8] [========================100%] particle-report.nsys-rep[1/8] [========================100%] particle-report.nsys-rep
-[2/8] [0%                          ] particle-report.sqlite[2/8] [1%                          ] particle-report.sqlite[2/8] [2%                          ] particle-report.sqlite[2/8] [3%                          ] particle-report.sqlite[2/8] [4%                          ] particle-report.sqlite[2/8] [5%                          ] particle-report.sqlite[2/8] [6%                          ] particle-report.sqlite[2/8] [7%                          ] particle-report.sqlite[2/8] [8%                          ] particle-report.sqlite[2/8] [9%                          ] particle-report.sqlite[2/8] [10%                         ] particle-report.sqlite[2/8] [11%                         ] particle-report.sqlite[2/8] [12%                         ] particle-report.sqlite[2/8] [13%                         ] particle-report.sqlite[2/8] [14%                         ] particle-report.sqlite[2/8] [=15%                        ] particle-report.sqlite[2/8] [=16%                        ] particle-report.sqlite[2/8] [=17%                        ] particle-report.sqlite[2/8] [==18%                       ] particle-report.sqlite[2/8] [==19%                       ] particle-report.sqlite[2/8] [==20%                       ] particle-report.sqlite[2/8] [==21%                       ] particle-report.sqlite[2/8] [===22%                      ] particle-report.sqlite[2/8] [===23%                      ] particle-report.sqlite[2/8] [===24%                      ] particle-report.sqlite[2/8] [====25%                     ] particle-report.sqlite[2/8] [====26%                     ] particle-report.sqlite[2/8] [====27%                     ] particle-report.sqlite[2/8] [====28%                     ] particle-report.sqlite[2/8] [=====29%                    ] particle-report.sqlite[2/8] [=====30%                    ] particle-report.sqlite[2/8] [=====31%                    ] particle-report.sqlite[2/8] [=====32%                    ] particle-report.sqlite[2/8] [======33%                   ] particle-report.sqlite[2/8] [======34%                   ] particle-report.sqlite[2/8] [======35%                   ] particle-report.sqlite[2/8] [=======36%                  ] particle-report.sqlite[2/8] [=======37%                  ] particle-report.sqlite[2/8] [=======38%                  ] particle-report.sqlite[2/8] [=======39%                  ] particle-report.sqlite[2/8] [========40%                 ] particle-report.sqlite[2/8] [========41%                 ] particle-report.sqlite[2/8] [========42%                 ] particle-report.sqlite[2/8] [=========43%                ] particle-report.sqlite[2/8] [=========44%                ] particle-report.sqlite[2/8] [=========45%                ] particle-report.sqlite[2/8] [=========46%                ] particle-report.sqlite[2/8] [==========47%               ] particle-report.sqlite[2/8] [==========48%               ] particle-report.sqlite[2/8] [==========49%               ] particle-report.sqlite[2/8] [===========50%              ] particle-report.sqlite[2/8] [===========51%              ] particle-report.sqlite[2/8] [===========52%              ] particle-report.sqlite[2/8] [===========53%              ] particle-report.sqlite[2/8] [============54%             ] particle-report.sqlite[2/8] [============55%             ] particle-report.sqlite[2/8] [============56%             ] particle-report.sqlite[2/8] [============57%             ] particle-report.sqlite[2/8] [=============58%            ] particle-report.sqlite[2/8] [=============59%            ] particle-report.sqlite[2/8] [=============60%            ] particle-report.sqlite[2/8] [==============61%           ] particle-report.sqlite[2/8] [==============62%           ] particle-report.sqlite[2/8] [==============63%           ] particle-report.sqlite[2/8] [==============64%           ] particle-report.sqlite[2/8] [===============65%          ] particle-report.sqlite[2/8] [===============66%          ] particle-report.sqlite[2/8] [===============67%          ] particle-report.sqlite[2/8] [================68%         ] particle-report.sqlite[2/8] [================69%         ] particle-report.sqlite[2/8] [================70%         ] particle-report.sqlite[2/8] [================71%         ] particle-report.sqlite[2/8] [=================72%        ] particle-report.sqlite[2/8] [=================73%        ] particle-report.sqlite[2/8] [=================74%        ] particle-report.sqlite[2/8] [==================75%       ] particle-report.sqlite[2/8] [==================76%       ] particle-report.sqlite[2/8] [==================77%       ] particle-report.sqlite[2/8] [==================78%       ] particle-report.sqlite[2/8] [===================79%      ] particle-report.sqlite[2/8] [===================80%      ] particle-report.sqlite[2/8] [===================81%      ] particle-report.sqlite[2/8] [===================82%      ] particle-report.sqlite[2/8] [====================83%     ] particle-report.sqlite[2/8] [====================84%     ] particle-report.sqlite[2/8] [====================85%     ] particle-report.sqlite[2/8] [=====================86%    ] particle-report.sqlite[2/8] [=====================87%    ] particle-report.sqlite[2/8] [=====================88%    ] particle-report.sqlite[2/8] [=====================89%    ] particle-report.sqlite[2/8] [======================90%   ] particle-report.sqlite[2/8] [======================91%   ] particle-report.sqlite[2/8] [======================92%   ] particle-report.sqlite[2/8] [=======================93%  ] particle-report.sqlite[2/8] [=======================94%  ] particle-report.sqlite[2/8] [=======================95%  ] particle-report.sqlite[2/8] [=======================96%  ] particle-report.sqlite[2/8] [========================97% ] particle-report.sqlite[2/8] [========================98% ] particle-report.sqlite[2/8] [========================99% ] particle-report.sqlite[2/8] [========================100%] particle-report.sqlite[2/8] [========================100%] particle-report.sqlite
-[3/8] Executing 'nvtx_sum' stats report
-[4/8] Executing 'osrt_sum' stats report
-
- Time (%)  Total Time (ns)  Num Calls    Avg (ns)      Med (ns)    Min (ns)   Max (ns)    StdDev (ns)            Name         
- --------  ---------------  ---------  ------------  ------------  --------  -----------  ------------  ----------------------
-     90.8    2,208,866,567        116  19,041,953.2  10,108,801.0     2,094  100,170,620  27,224,303.8  poll                  
-      7.6      184,713,160        584     316,289.7      25,270.5       321   40,166,188   1,800,459.1  ioctl                 
-      0.7       17,473,733         45     388,305.2         852.0       430   17,016,281   2,535,413.7  fclose                
-      0.6       14,460,107         47     307,661.9       3,156.0     1,252   11,796,763   1,730,160.7  fopen                 
-      0.1        2,247,356          4     561,839.0       1,679.0     1,363    2,242,635   1,120,530.7  fopen64               
-      0.1        1,276,244         28      45,580.1       8,291.5     6,994      720,551     134,852.1  mmap64                
-      0.0          944,810         10      94,481.0      94,960.0    72,074      138,026      19,204.0  sem_timedwait         
-      0.0          845,681          7     120,811.6      12,144.0       231      431,283     163,838.1  fread                 
-      0.0          715,452          4     178,863.0     172,761.0   159,529      210,401      21,932.7  pthread_create        
-      0.0          519,581         64       8,118.5         421.0       150      298,306      44,000.4  fcntl                 
-      0.0          260,247         76       3,424.3       3,107.0     2,285       14,559       1,570.3  writev                
-      0.0          258,016         17      15,177.4       6,082.0     2,485       70,581      21,187.0  mmap                  
-      0.0          244,536         61       4,008.8       3,607.0       671       15,100       2,828.2  open64                
-      0.0           43,044         29       1,484.3          50.0        50       41,452       7,686.9  fgets                 
-      0.0           37,323          7       5,331.9       5,671.0     1,302        9,529       2,618.3  open                  
-      0.0           36,724         13       2,824.9       2,935.0       912        4,179         858.6  write                 
-      0.0           28,428         15       1,895.2       1,994.0       982        3,206         503.3  read                  
-      0.0           24,249          7       3,464.1       3,758.0     2,165        4,609       1,023.5  munmap                
-      0.0           18,306          3       6,102.0       6,753.0     2,725        8,828       3,103.1  pipe2                 
-      0.0           12,555          2       6,277.5       6,277.5     4,819        7,736       2,062.6  socket                
-      0.0           10,894          8       1,361.8          86.0        40        5,602       2,391.0  fflush                
-      0.0            9,257         64         144.6         130.0        40          722         145.4  pthread_mutex_trylock 
-      0.0            8,957          9         995.2         471.0        60        2,966       1,078.6  fwrite                
-      0.0            8,637          1       8,637.0       8,637.0     8,637        8,637           0.0  connect               
-      0.0            4,459          2       2,229.5       2,229.5     1,964        2,495         375.5  pthread_cond_broadcast
-      0.0            3,085          8         385.6         340.5       310          581          95.8  dup                   
-      0.0            2,665          1       2,665.0       2,665.0     2,665        2,665           0.0  bind                  
-      0.0              471          2         235.5         235.5       191          280          62.9  putc                  
-      0.0              461          1         461.0         461.0       461          461           0.0  listen                
-
-[5/8] Executing 'cuda_api_sum' stats report
-
- Time (%)  Total Time (ns)  Num Calls    Avg (ns)       Med (ns)     Min (ns)   Max (ns)     StdDev (ns)            Name         
- --------  ---------------  ---------  -------------  -------------  --------  -----------  -------------  ----------------------
-     82.3      983,250,346        200    4,916,251.7    4,800,991.5     7,195   12,255,560    4,940,548.9  cudaDeviceSynchronize 
-     17.1      203,955,197          2  101,977,598.5  101,977,598.5    10,711  203,944,486  144,202,955.2  cudaMallocManaged     
-      0.5        5,812,416        200       29,062.1        3,572.5     2,645    5,044,278      356,417.8  cudaLaunchKernel      
-      0.1        1,634,763        100       16,347.6       11,192.5    10,080      495,090       48,375.1  cudaMemset            
-      0.0          499,599          2      249,799.5      249,799.5    92,184      407,415      222,902.0  cudaFree              
-      0.0          197,936          2       98,968.0       98,968.0    26,984      170,952      101,800.7  cudaMemPrefetchAsync  
-      0.0            2,796          1        2,796.0        2,796.0     2,796        2,796            0.0  cuModuleGetLoadingMode
-
-[6/8] Executing 'cuda_gpu_kern_sum' stats report
-
- Time (%)  Total Time (ns)  Instances   Avg (ns)     Med (ns)    Min (ns)    Max (ns)   StdDev (ns)                                                  Name                                                
- --------  ---------------  ---------  -----------  -----------  ---------  ----------  -----------  ----------------------------------------------------------------------------------------------------
-    100.0      981,693,297        100  9,816,933.0  9,600,026.5  9,584,122  12,251,256    657,552.3  compute_force_between_particles(Particle3D *, float3 *, int, float, float, float, float, float, flo…
-      0.0          488,031        100      4,880.3      4,799.5      4,448       6,272        377.1  apply_integrator_for_particle_euler(Particle3D *, float3 *, int, float, float)                      
-
-[7/8] Executing 'cuda_gpu_mem_time_sum' stats report
-
- Time (%)  Total Time (ns)  Count  Avg (ns)  Med (ns)  Min (ns)  Max (ns)  StdDev (ns)               Operation              
- --------  ---------------  -----  --------  --------  --------  --------  -----------  ------------------------------------
-     58.7          654,461    100   6,544.6   2,016.0     1,983   451,392     44,934.3  [CUDA memset]                       
-     29.7          330,680     75   4,409.1   3,775.0     3,359    18,207      2,156.6  [CUDA memcpy Unified Host-to-Device]
-     11.6          128,854     17   7,579.6   5,183.0     2,687    24,447      7,271.5  [CUDA memcpy Unified Device-to-Host]
-
-[8/8] Executing 'cuda_gpu_mem_size_sum' stats report
-
- Total (MB)  Count  Avg (MB)  Med (MB)  Min (MB)  Max (MB)  StdDev (MB)               Operation              
- ----------  -----  --------  --------  --------  --------  -----------  ------------------------------------
-     39.322    100     0.393     0.393     0.393     0.393        0.000  [CUDA memset]                       
-      2.097     75     0.028     0.012     0.004     0.352        0.052  [CUDA memcpy Unified Host-to-Device]
-      1.966     17     0.116     0.061     0.004     0.524        0.174  [CUDA memcpy Unified Device-to-Host]
-
-Generated:
-    /home/hpc/hesp/hesp123h/HESP---SS2024/task6/particle-report.nsys-rep
-    /home/hpc/hesp/hesp123h/HESP---SS2024/task6/particle-report.sqlite
-=== JOB_STATISTICS ===
-=== current date     : Mon Jul  8 13:27:12 CEST 2024
-= Job-ID             : 1856958 on alex
-= Job-Name           : particle_simulation
-= Job-Command        : /home/hpc/hesp/hesp123h/HESP---SS2024/task6/batch.sh
-= Initial workdir    : /home/hpc/hesp/hesp123h/HESP---SS2024/task6
-= Queue/Partition    : a100
-= Slurm account      : hesp with QOS=normal
-= Requested resources:  for 06:00:00
-= Elapsed runtime    : 00:00:09
-= Total RAM usage    : 0.0 GiB of assigned  GiB (%)
-= Node list          : a0531
-= Subm/Elig/Start/End: 2024-07-08T13:27:02 / 2024-07-08T13:27:02 / 2024-07-08T13:27:03 / 2024-07-08T13:27:12
-======================
-=== Quota infos ======
-    Path              Used     SoftQ    HardQ    Gracetime  Filec    FileQ    FiHaQ    FileGrace    
-    /home/woody          0.0K  1000.0G  1500.0G        N/A       1    5,000K   7,500K        N/A    
-    /home/hpc          237.1M   104.9G   209.7G        N/A     316      500K   1,000K        N/A    
-======================
-=== GPU utilization ==
-gpu_name, gpu_bus_id, pid, gpu_utilization [%], mem_utilization [%], max_memory_usage [MiB], time [ms]
-NVIDIA A100-SXM4-80GB, 00000000:D1:00.0, 1619790, 32 %, 0 %, 442 MiB, 1374 ms

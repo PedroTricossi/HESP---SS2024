@@ -125,9 +125,9 @@ void start_particle_simulation(int time_steps, float step_size, int num_particle
         if(i < (num_particles / 2))
             h_a[i] = Particle3D(float3{ x, y, z }, float3{ 0.0f, 0.0f, 0.0f }, 1.0f, 1.0f, nullptr, i);
             
-            if (i == 42) {
-                h_a[i] = Particle3D(float3{ x, y, z }, float3{ -2.0f, 0.0f, 0.0f }, 1.0f, 1.0f, nullptr, i);
-            }
+            // if (i == 42) {
+            //     h_a[i] = Particle3D(float3{ x, y, z }, float3{ -2.0f, 0.0f, 0.0f }, 1.0f, 1.0f, nullptr, i);
+            // }
         else
             h_b[i - (num_particles / 2)] = Particle3D(float3{ x, y, z }, float3{ 0.0f, 0.0f, 0.0f }, 1.0f, 1.0f, nullptr, i);
         

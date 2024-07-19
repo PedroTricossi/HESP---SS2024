@@ -227,7 +227,7 @@ __global__ void compute_colision_between_streams(Particle3D* particles_steam_1,P
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < (num_particles / 2)) {
         float3 r;
-        for (int j = (num_particles / 2); j < num_particles; ++j) {
+        for (int j = (num_particles / 2); j < (num_particles / 2); ++j) {
             if (i != j) {
                 r.x = particles_steam_2[j].getPosition().x - particles_steam_1[i].getPosition().x;
                 r.y = particles_steam_2[j].getPosition().y - particles_steam_1[i].getPosition().y;
@@ -242,9 +242,9 @@ __global__ void compute_colision_between_streams(Particle3D* particles_steam_1,P
                     forces_stream_1[i].y = forces_stream_1[i].y + force_ij.y;
                     forces_stream_1[i].z = forces_stream_1[i].z + force_ij.z;
 
-                    forces_stream_2[j].x = -(forces_stream_2[j].x + force_ij.x);
-                    forces_stream_2[j].y = -(forces_stream_2[j].y + force_ij.y);
-                    forces_stream_2[j].z = -(forces_stream_2[j].z + force_ij.z);
+                    // forces_stream_2[j].x = forces_stream_2[j].x - force_ij.x;
+                    // forces_stream_2[j].y = forces_stream_2[j].y - force_ij.y;
+                    // forces_stream_2[j].z = forces_stream_2[j].z - force_ij.z;
                 }
             }
         }

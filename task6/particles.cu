@@ -235,6 +235,7 @@ __global__ void compute_colision_between_streams(Particle3D* particles_steam_1,P
 
                 float xij = sqrtf(r.x * r.x + r.y * r.y + r.z * r.z);
                 if (xij <= cut_off_radious){
+                    // printf("overlap in streams");
                     float3 force_ij = particles_steam_1[i].calculate_spring_dashpot_force(particles_steam_2[j], k_n, gamma, box_extension);
 
                     forces_stream_1[i].x = forces_stream_1[i].x + force_ij.x;
@@ -318,7 +319,7 @@ __global__ void apply_integrator_for_particle(Particle3D* particles, float3* for
 //Explicit Euler
 __global__ void apply_integrator_for_particle_euler(Particle3D* particles, float3* forces, int num_particles, float step_size, float box_extension) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i < num_particles) {
+    if (i < (num_particles / 2)) {
         Particle3D& particle = particles[i];
         float3 acceleration;
         float3 new_velocity;
@@ -339,6 +340,8 @@ __global__ void apply_integrator_for_particle_euler(Particle3D* particles, float
         new_position.x = fmodf(new_position.x + box_extension, box_extension);
         new_position.y = fmodf(new_position.y + box_extension, box_extension);
         new_position.z = fmodf(new_position.z + box_extension, box_extension);
+
+        // printf("new_position: %f\n", new_position.y);
 
         particle.setPosition(new_position);
         particle.setVelocity(new_velocity);
@@ -398,6 +401,8 @@ __global__ void apply_integrator_for_particle_rk4(Particle3D* particles, float3*
         vel.x += (step_size / 6.0f) * (k1_vel.x + 2.0f * k2_vel.x + 2.0f * k3_vel.x + k4_vel.x);
         vel.y += (step_size / 6.0f) * (k1_vel.y + 2.0f * k2_vel.y + 2.0f * k3_vel.y + k4_vel.y);
         vel.z += (step_size / 6.0f) * (k1_vel.z + 2.0f * k2_vel.z + 2.0f * k3_vel.z + k4_vel.z);
+
+        printf("pos: %f\n", pos.y);
 
         particle.setPosition(pos);
         particle.setVelocity(vel);

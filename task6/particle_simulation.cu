@@ -8,40 +8,58 @@
 #include "particles.cuh"
 // #include "../include/n_list.cuh"
 
-void writeVTKFile(int step, int num_particles, Particle3D* particles) {
+void writeVTKFile(int step, int num_particles, Particle3D* particles_steam_1, Particle3D* particles_steam_2) {
     std::ofstream simulationFile("simulation_" + std::to_string(step) + ".vtk");
 
     simulationFile << "# vtk DataFile Version 3.0 \n";
     simulationFile << "Lennard-Jones particle simulation \n";
     simulationFile << "ASCII \n";
     simulationFile << "DATASET UNSTRUCTURED_GRID \n";
-    simulationFile << "POINTS " << (num_particles / 2) << " float \n";
+    simulationFile << "POINTS " << num_particles  << " float \n";
 
     for (int i = 0; i < (num_particles / 2); i++) {
-        float3 pos = particles[i].getPosition();
+        float3 pos = particles_steam_1[i].getPosition();
+        simulationFile << pos.x << " " << pos.y << " " << pos.z << "\n";
+    }
+
+    for (int i = 0; i < (num_particles / 2); i++) {
+        float3 pos = particles_steam_2[i].getPosition();
         simulationFile << pos.x << " " << pos.y << " " << pos.z << "\n";
     }
 
     simulationFile << "CELLS " << "0" << " " << "0" << "\n";
     simulationFile << "CELL_TYPES " << "0" << "\n";
-    simulationFile << "POINT_DATA " << (num_particles / 2) << "\n";
+    simulationFile << "POINT_DATA " << (num_particles) << "\n";
     simulationFile << "SCALARS mass float \n";
     simulationFile << "LOOKUP_TABLE default \n";
 
     for (int i = 0; i < (num_particles / 2); i++) {
-        simulationFile << particles[i].getMass() << "\n";
+        simulationFile << particles_steam_1[i].getMass() << "\n";
+    }
+
+    for (int i = 0; i < (num_particles / 2); i++) {
+        simulationFile << particles_steam_2[i].getMass() << "\n";
     }
 
     simulationFile << "SCALARS radius float \n";
     simulationFile << "LOOKUP_TABLE default \n";
 
     for (int i = 0; i < (num_particles / 2); i++) {
-        simulationFile << particles[i].getRadius() << "\n";
+        simulationFile << particles_steam_1[i].getRadius() << "\n";
+    }
+
+    for (int i = 0; i < (num_particles / 2); i++) {
+        simulationFile << particles_steam_2[i].getRadius() << "\n";
     }
 
     simulationFile << "VECTORS velocity float \n";
     for (int i = 0; i < (num_particles / 2); i++) {
-        float3 vel = particles[i].getVelocity();
+        float3 vel = particles_steam_1[i].getVelocity();
+        simulationFile << vel.x << " " << vel.y << " " << vel.z << "\n";
+    }
+
+    for (int i = 0; i < (num_particles / 2); i++) {
+        float3 vel = particles_steam_2[i].getVelocity();
         simulationFile << vel.x << " " << vel.y << " " << vel.z << "\n";
     }
 }
@@ -97,7 +115,7 @@ void start_particle_simulation(int time_steps, float step_size, int num_particle
 
     t_neighbourList *nb_list = nullptr;
 
-    int pos = 0;    
+    int pos = 4;    
     
     for (int i = 0; i < num_particles; ++i) {
         float x = fmod(pos, box_extension) ;
@@ -106,6 +124,10 @@ void start_particle_simulation(int time_steps, float step_size, int num_particle
         
         if(i < (num_particles / 2))
             h_a[i] = Particle3D(float3{ x, y, z }, float3{ 0.0f, 0.0f, 0.0f }, 1.0f, 1.0f, nullptr, i);
+            
+            if (i == 42) {
+                h_a[i] = Particle3D(float3{ x, y, z }, float3{ -2.0f, 0.0f, 0.0f }, 1.0f, 1.0f, nullptr, i);
+            }
         else
             h_b[i - (num_particles / 2)] = Particle3D(float3{ x, y, z }, float3{ 0.0f, 0.0f, 0.0f }, 1.0f, 1.0f, nullptr, i);
         
@@ -119,17 +141,13 @@ void start_particle_simulation(int time_steps, float step_size, int num_particle
 
     std::cout << num_particles << ", ";
 
-    writeVTKFile(0, num_particles, h_a);
-    // writeVTKFile(0, num_particles, h_b);
+    writeVTKFile(0, num_particles, h_a, h_b);
 
     cudaMemcpyAsync(d_a, h_a, sizeof(Particle3D)* (num_particles / 2), cudaMemcpyHostToDevice, stream[0]);
 	cudaMemcpyAsync(d_b, h_b, sizeof(Particle3D)* (num_particles / 2), cudaMemcpyHostToDevice, stream[1]);
 
     cudaMemcpyAsync(da_forces, ha_forces, sizeof(float3)* (num_particles / 2), cudaMemcpyHostToDevice, stream[0]);
 	cudaMemcpyAsync(db_forces, hb_forces, sizeof(float3)* (num_particles / 2), cudaMemcpyHostToDevice, stream[1]);
-
-    
-
 
 
     for (int step = 0; step < time_steps; ++step) {
@@ -147,17 +165,17 @@ void start_particle_simulation(int time_steps, float step_size, int num_particle
 
                 
         // Integrate particles using CUDA
-        apply_integrator_for_particle_rk4 <<< numberOfBlocks, numberOfThreads, 0, stream[0]>>> (d_a, da_forces, num_particles, step_size, box_extension);
-        apply_integrator_for_particle_rk4 <<< numberOfBlocks, numberOfThreads, 0, stream[1]>>> (d_b, db_forces, num_particles, step_size, box_extension);
+        apply_integrator_for_particle_euler <<< numberOfBlocks, numberOfThreads, 0, stream[0]>>> (d_a, da_forces, num_particles, step_size, box_extension);
+        apply_integrator_for_particle_euler <<< numberOfBlocks, numberOfThreads, 0, stream[1]>>> (d_b, db_forces, num_particles, step_size, box_extension);
         cudaDeviceSynchronize();
 
         cudaMemcpyAsync(h_a, d_a, sizeof(Particle3D)* (num_particles / 2), cudaMemcpyDeviceToHost, stream[0]);
-	    // cudaMemcpyAsync(h_b, d_b, sizeof(Particle3D)* (num_particles / 2), cudaMemcpyDeviceToHost, stream[1]);
+	    cudaMemcpyAsync(h_b, d_b, sizeof(Particle3D)* (num_particles / 2), cudaMemcpyDeviceToHost, stream[1]);
 
         cudaDeviceSynchronize();
 
         // Write the VTK file
-        writeVTKFile(step + 1, num_particles, h_a);
+        writeVTKFile(step + 1, num_particles, h_a, h_b);
         // writeVTKFile(0, num_particles, h_b);
     }
 

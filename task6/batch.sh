@@ -10,4 +10,4 @@ unset SLURM_EXPORT_ENV
 module load load nvhpc cuda
 
 #nsys profile --stats=true -o particle-report ./run 100 0.1 32768 1 1 300 2.5 2 6.4 1 
-./run 100 0.1 262144 1 1 300 2.5 2 6.4 1
+./run 10 0.1 262144 1 1 300 2.5 2 6.4 1

@@ -68,6 +68,9 @@ __host__ __device__ int calculate_matrix_coordenates(int x, int y, int z, float 
 __global__ void compute_force_between_particles(Particle3D* particles, float3* forces, int num_particles, float eps, float sigma, float k_n, float gamma, float gravity, 
 float box_extension, float cut_off_radious, t_neighbourList* nb_list);
 
+__global__ void compute_colision_between_streams(Particle3D* particles_steam_1,Particle3D* particles_steam_2, float3* forces_stream_1, float3* forces_stream_2,
+ int num_particles, float k_n, float gamma, float box_extension, float cut_off_radious);
+
 __global__ void apply_integrator_for_particle(Particle3D* particles, float3* forces, int num_particles, float step_size, float box_extension);
 __global__ void apply_integrator_for_particle_euler(Particle3D* particles, float3* forces, int num_particles, float step_size, float box_extension);
 __global__ void apply_integrator_for_particle_rk4(Particle3D* particles, float3* forces, int num_particles, float step_size, float box_extension);

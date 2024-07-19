@@ -223,6 +223,34 @@ float box_extension, float cut_off_radious, t_neighbourList* nb_list)
     }
 }
 
+__global__ void compute_colision_between_streams(Particle3D* particles_steam_1,Particle3D* particles_steam_2, float3* forces_stream_1, float3* forces_stream_2, int num_particles, float k_n, float gamma, float box_extension, float cut_off_radious){
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < (num_particles / 2)) {
+        float3 r;
+        for (int j = (num_particles / 2); j < num_particles; ++j) {
+            if (i != j) {
+                r.x = particles_steam_2[j].getPosition().x - particles_steam_1[i].getPosition().x;
+                r.y = particles_steam_2[j].getPosition().y - particles_steam_1[i].getPosition().y;
+                r.z = particles_steam_2[j].getPosition().z - particles_steam_1[i].getPosition().z;
+
+                float xij = sqrtf(r.x * r.x + r.y * r.y + r.z * r.z);
+                if (xij <= cut_off_radious){
+                    float3 force_ij = particles_steam_1[i].calculate_spring_dashpot_force(particles_steam_2[j], k_n, gamma, box_extension);
+
+                    forces_stream_1[i].x = forces_stream_1[i].x + force_ij.x;
+                    forces_stream_1[i].y = forces_stream_1[i].y + force_ij.y;
+                    forces_stream_1[i].z = forces_stream_1[i].z + force_ij.z;
+
+                    forces_stream_2[j].x = -(forces_stream_2[j].x + force_ij.x);
+                    forces_stream_2[j].y = -(forces_stream_2[j].y + force_ij.y);
+                    forces_stream_2[j].z = -(forces_stream_2[j].z + force_ij.z);
+                }
+            }
+        }
+    }
+
+}
+
 /*
 __global__ void apply_integrator_for_particle(Particle3D* particles, float3* forces, int num_particles, float step_size, float box_extension) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;

@@ -137,6 +137,11 @@ void start_particle_simulation(int time_steps, float step_size, int num_particle
 
         compute_force_between_particles <<< numberOfBlocks, numberOfThreads, 0, stream[0]>>> (d_a, da_forces, num_particles, eps, sigma, k_n, gamma, gravity, box_extension, cut_off_radious, nb_list);
         compute_force_between_particles <<< numberOfBlocks, numberOfThreads, 0, stream[1]>>> (d_b, db_forces, num_particles, eps, sigma, k_n, gamma, gravity, box_extension, cut_off_radious, nb_list);
+        cudaDeviceSynchronize();
+
+        compute_colision_between_streams <<< numberOfBlocks, numberOfThreads>>> (d_a, d_b, da_forces, db_forces, num_particles, k_n, gamma, box_extension, cut_off_radious);
+        cudaDeviceSynchronize();
+
                 
         // Integrate particles using CUDA
         apply_integrator_for_particle_rk4 <<< numberOfBlocks, numberOfThreads, 0, stream[0]>>> (d_a, da_forces, num_particles, step_size, box_extension);

@@ -127,7 +127,7 @@ void start_particle_simulation(int time_steps, float step_size, int num_particle
 
     
 
-    // writeVTKFile(0, num_particles, particles);
+    writeVTKFile(0, num_particles, particles);
 
     for (int step = 0; step < time_steps; ++step) {
         cudaMemset(da_forces, 0, sizeof(float3)* (num_particles / 2));
@@ -149,7 +149,7 @@ void start_particle_simulation(int time_steps, float step_size, int num_particle
         cudaDeviceSynchronize();
 
         // Write the VTK file
-        // writeVTKFile(step + 1, num_particles, particles);
+        writeVTKFile(step + 1, num_particles, particles);
     }
 
     // cudaFree(particles);

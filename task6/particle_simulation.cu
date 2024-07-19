@@ -149,8 +149,8 @@ void start_particle_simulation(int time_steps, float step_size, int num_particle
         apply_integrator_for_particle_rk4 <<< numberOfBlocks, numberOfThreads, 0, stream[1]>>> (d_b, db_forces, num_particles, step_size, box_extension);
         cudaDeviceSynchronize();
 
-        cudaMemcpyAsync(h_a, d_a, sizeof(Particle3D)* (num_particles / 2), cudaMemcpyDeviceToHost, streams[0]);
-	    cudaMemcpyAsync(h_b, d_b, sizeof(Particle3D)* (num_particles / 2), cudaMemcpyDeviceToHost, streams[1]);
+        cudaMemcpyAsync(h_a, d_a, sizeof(Particle3D)* (num_particles / 2), cudaMemcpyDeviceToHost, stream[0]);
+	    cudaMemcpyAsync(h_b, d_b, sizeof(Particle3D)* (num_particles / 2), cudaMemcpyDeviceToHost, stream[1]);
 
         cudaDeviceSynchronize();
 

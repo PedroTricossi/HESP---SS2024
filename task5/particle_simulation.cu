@@ -82,20 +82,22 @@ void start_particle_simulation(int time_steps, float step_size, int num_particle
     int pos = 5;    
     
     for (int i = 0; i < num_particles; ++i) {
-        float y = fmod(pos, box_extension) ;
-        float x = x + 2.0f;
+        float x = fmod(pos, box_extension) ;
+        float y = (pos * 2 >= box_extension * box_extension) ? fmod(floor((pos * 2) / box_extension), box_extension) : 0;
         float z = (pos * 4 >= box_extension * box_extension) ? fmod(floor((pos * 4) / (box_extension * box_extension) ), box_extension) : 0;
 
-        if(i == 3){
-            particles[i] = Particle3D(float3{ x, y, z }, float3{ 2.0f, 0.0f, 0.0f }, 1.0f, 1.0f, nullptr, i);
-        }
-        else if(i == 4){
-            particles[i] = Particle3D(float3{ x, y, z }, float3{ 0.0f, -2.0f, 0.0f }, 1.0f, 1.0f, nullptr, i);
-        }
-        else
-            particles[i] = Particle3D(float3{ x, y, z }, float3{ 0.0f, 0.0f, 0.0f }, 1.0f, 1.0f, nullptr, i);
+        // if(i == 3){
+        //     particles[i] = Particle3D(float3{ x, y, z }, float3{ 2.0f, 0.0f, 0.0f }, 1.0f, 1.0f, nullptr, i);
+        // }
+        // else if(i == 4){
+        //     particles[i] = Particle3D(float3{ x, y, z }, float3{ 0.0f, -2.0f, 0.0f }, 1.0f, 1.0f, nullptr, i);
+        // }
+        // else
+        //     particles[i] = Particle3D(float3{ x, y, z }, float3{ 0.0f, 0.0f, 0.0f }, 1.0f, 1.0f, nullptr, i);
 
         forces[i] = float3{ 0.0f, 0.0f, 0.0f };
+
+        particles[i] = Particle3D(float3{ x, y, z }, float3{ 0.0f, 0.0f, 0.0f }, 1.0f, 1.0f, nullptr, i);
 
         pos += 2;
     }
@@ -119,7 +121,7 @@ void start_particle_simulation(int time_steps, float step_size, int num_particle
         cudaDeviceSynchronize();
 
         // Write the VTK file
-        writeVTKFile(step + 1, num_particles, particles);
+        // writeVTKFile(step + 1, num_particles, particles);
 
     }
 

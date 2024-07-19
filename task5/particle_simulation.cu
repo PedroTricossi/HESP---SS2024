@@ -105,7 +105,7 @@ void start_particle_simulation(int time_steps, float step_size, int num_particle
     std::cout << num_particles << ", ";
     
 
-//    writeVTKFile(0, num_particles, particles);
+    writeVTKFile(0, num_particles, particles);
     int step = 0;
 
     for (int step = 0; step < time_steps; ++step) {
@@ -121,7 +121,7 @@ void start_particle_simulation(int time_steps, float step_size, int num_particle
         cudaDeviceSynchronize();
 
         // Write the VTK file
-        // writeVTKFile(step + 1, num_particles, particles);
+        writeVTKFile(step + 1, num_particles, particles);
 
     }
 

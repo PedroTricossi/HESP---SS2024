@@ -1,0 +1,2 @@
+ERROR: Unable to locate a modulefile for 'load'
+/var/tmp/slurmd_spool/job1883382/slurm_script: line 13: 2255986 Segmentation fault      (core dumped) ./run 10 0.1 262144 1 1 300 2.5 2 6.4 1

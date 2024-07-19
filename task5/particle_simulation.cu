@@ -83,7 +83,7 @@ void start_particle_simulation(int time_steps, float step_size, int num_particle
     
     for (int i = 0; i < num_particles; ++i) {
         float x = fmod(pos, box_extension) ;
-        float y = (pos * 2 >= box_extension * box_extension) ? fmod(floor((pos * 2) / box_extension), box_extension) : 0;
+        float y = (pos >= box_extension) ? fmod(floor(pos * 2 / box_extension), box_extension): 0;
         float z = (pos * 4 >= box_extension * box_extension) ? fmod(floor((pos * 4) / (box_extension * box_extension) ), box_extension) : 0;
 
         // if(i == 3){
@@ -113,7 +113,6 @@ void start_particle_simulation(int time_steps, float step_size, int num_particle
         
         // Compute forces using CUDA
         compute_force_between_particles <<< numberOfBlocks, numberOfThreads >>> (particles, forces, num_particles, eps, sigma, k_n, gamma, gravity, box_extension, cut_off_radious, nb_list);
-        
         cudaDeviceSynchronize();
 
         // Integrate particles using CUDA

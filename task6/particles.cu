@@ -185,7 +185,7 @@ __device__ void Particle3D::get_neighbours(t_neighbourList *neighbourList, int *
 }
 
 __global__ void compute_force_between_particles(Particle3D* particles, float3* forces, int num_particles, float eps, float sigma, float k_n, float gamma, float gravity, 
-float box_extension, float cut_off_radious, t_neighbourList* nb_list) 
+float box_extension, float cut_off_radious) 
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     
